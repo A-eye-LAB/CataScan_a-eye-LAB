@@ -7,8 +7,9 @@
 [이전: 앱 구조](02_app_architecture.md) | 
 [다음: 사용자 가이드](04_user_guide.md) 
 
-##### 발급된 토큰은 Paseto V4 형식이며, 이후 요청에서 Authorization 헤더에 Bearer Token으로 포함해야 합니다.
 <br>
+
+##### *발급된 토큰은 Paseto V4 형식이며, 이후 요청에서 Authorization 헤더에 Bearer Token으로 포함해야 합니다.
 
 **로그인**
 <details>
