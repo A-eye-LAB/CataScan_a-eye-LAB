@@ -81,10 +81,7 @@ fvm flutter build appbundle --release
    - `build/app/outputs/bundle/release/app-release.aab`
 
 ### 서명 파일 설정
-
-릴리스 빌드는 서명 파일이 필요합니다. 다음 단계를 따라 설정하세요:
-
-1. 키스토어 생성 (처음 한 번만):
+1. 키스토어 생성:
 
 ```bash
 keytool -genkey -v -keystore ~/upload-keystore.jks -keyalg RSA -keysize 2048 -validity 10000 -alias upload
@@ -99,7 +96,7 @@ keyAlias=upload
 storeFile=<키스토어 경로, 예: /Users/사용자명/upload-keystore.jks>
 ```
 
-3. `android/app/build.gradle` 파일 수정 (이미 설정되어 있다면 건너뛰기):
+3. `android/app/build.gradle` 파일 수정:
 
 ```gradle
 def keystoreProperties = new Properties()
@@ -136,8 +133,6 @@ fvm flutter build appbundle --release
 ```
 
 ## iOS 빌드
-
-> **주의**: iOS 빌드는 macOS 환경에서만 가능합니다.
 
 ### 개발용 빌드
 
@@ -191,4 +186,4 @@ fvm flutter build ios --release
 3. Xcode에서 설정:
    - Xcode > Preferences > Accounts에서 Apple ID 로그인
    - 프로젝트 설정 > Signing & Capabilities에서 팀 선택
-   - Automatically manage signing 옵션 체크 또는 해제 (상황에 맞게)
+   - Automatically manage signing 옵션 체크 또는 해제
