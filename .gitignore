@@ -1,0 +1,21 @@
+dataset/data/
+tmp
+*.png
+*.jpg
+*.JPG
+*.jpeg
+*.pkl
+*.onnx
+### Python ###
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+.python-version
+# C extensions
+*.so
+# VSCode
+.vscode
+outputs
+wandb
+.DS_Store

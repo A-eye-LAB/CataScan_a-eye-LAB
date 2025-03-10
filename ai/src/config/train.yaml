@@ -1,0 +1,45 @@
+DEVICE: cuda
+RANDOM_SEED: 42
+
+MODEL:
+  NAME          : 'MobileNet_V3_Large'
+  NUM_CLASSES   : 2
+  PRETRAINED    : True
+
+DATASET:
+  TRAIN_DATA_DIR: [
+    'dataset/data/C001',
+    'dataset/data/C002',
+    'dataset/data/C003',
+    'dataset/data/Cataract_Detection-using-CNN',
+    'dataset/data/Cataract-Detection-and-Classification',
+    'dataset/data/kaggle_cataract_kersh',
+    # 'dataset/data/kaggle_cataract_nand'      # Extern test dataset
+  ]
+  NUM_WORKERS   : 16
+  N_FOLDS       : 1                       # 1 : no fold
+
+TRAIN: 
+  BATCH_SIZE    : 128    
+  EPOCHS        : 100
+  PATIENCE      : 10
+  AMP           : True   
+
+LOSS:
+  NAME: CrossEntropyLoss
+
+OPTIMIZER:
+  NAME: AdamW
+  lr: 0.0001
+  weight_decay: 0.1
+
+SCHEDULER:
+  scheduler_name: 'ReduceLROnPlateau' 
+  mode: 'max'
+  factor: 0.1
+  patience: 5
+  min_lr: 0.000001
+
+SAVE_DIR        : 'models'
+
+WANDB_PROJECT   : 'cataract-detection'
