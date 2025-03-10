@@ -54,7 +54,7 @@
 
 | Precision | Recall | F1 Score | Accuracy | Specificity |
 |--|--|--|--|--|
-|0.8780| 0.9231| 0.9000| 0.9223| 0.9219|
+|0.9843| 0.9025| 0.9416| 0.944| 0.9856|
 
 ### Cataract Classifier 정확도
 | Precision | Recall | F1 Score | Accuracy | Specificity |
