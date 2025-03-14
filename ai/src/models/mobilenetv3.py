@@ -8,12 +8,13 @@ class MobileNet_V3_Large(nn.Module):
         super(MobileNet_V3_Large, self).__init__()
 
         # From timm
-        self.model = timm.create_model(
-            "mobilenetv3_large_100", pretrained=pretrained, num_classes=num_classes
-        )
+        self.model = timm.create_model("mobilenetv3_large_100", pretrained=pretrained, num_classes=num_classes)
 
     def forward(self, x):
         return self.model(x)
+
+    def load(self, path):
+        self.load_state_dict(torch.load(path))
 
 
 if __name__ == "__main__":
