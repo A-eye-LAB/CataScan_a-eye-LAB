@@ -1,0 +1,2394 @@
+openapi: "3.0.3"
+info:
+  title: Catascan Web Admin API
+  description: API for Catascan Web Admin
+  version: 1.0
+servers:
+  - url: http://ec2-3-35-207-200.ap-northeast-2.compute.amazonaws.com:8080
+    description: Production server
+  - url: http://localhost:8080
+    description: Localhost server
+      
+paths:
+  /admin/user/{id}:
+    get:
+      summary: GET admin/user/{id}
+      description: Retrieve details of a specific User
+      operationId: getUser
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            example: 1
+      responses:
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserResponseDto"
+        "404":
+          description: "User not found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+              examples:
+                notFound:
+                  value:
+                    message: "User with the specified ID not found."
+    patch:
+      summary: PATCH admin/user/{id}
+      description: Update user details such as name, email, role, etc.
+      operationId: updateUser
+      security:
+        - PasetoAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            example: 2
+          description: The ID of the user to be updated
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateUserRequestDto"
+        required: true
+      responses:
+        "200":
+          description: OK - User information updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserResponseDto"
+        "403":
+          description: Forbidden - You do not have permission to update this user
+        "404":
+          description: Not Found - User not found with the specified ID
+        "400":
+          description: Bad Request - Invalid data or request format
+    delete:
+      summary: DELETE admin/user/{id}
+      description: Deletes user with id
+      operationId: deleteUser
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: "The ID of the user to delete"
+          schema:
+            type: integer
+            format: int64
+      responses:
+        "200":
+          description: "User successfully deleted"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+              examples:
+                success:
+                  value:
+                    message: "User deleted successfully"
+        "400":
+          description: "Invalid ID supplied"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+              examples:
+                invalidId:
+                  value:
+                    message: "The user ID provided is invalid."
+        "404":
+          description: "User not found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+              examples:
+                notFound:
+                  value:
+                    message: "User with the specified ID not found."
+        "500":
+          description: "Internal Server Error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+              examples:
+                serverError:
+                  value:
+                    message: "An unexpected error occurred while deleting the user."
+
+  /admin/user:
+    post:
+      summary: "POST admin/user"
+      operationId: "createUser"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateUserRequestDto"
+        required: true
+      responses:
+        "201":
+          description: "User successfully created"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserResponseDto"
+              examples:
+                success:
+                  value:
+                    id: 1
+                    username: "exampleUser1"
+                    email: "user@catascan.com"
+                    role: "user"
+                    institutionName: "Cataract Eye Center"
+        "400":
+          description: "Invalid input data"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+              examples:
+                invalidInput:
+                  value:
+                    message: "The data provided is invalid or incomplete."
+        "409":
+          description: "User already exists"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+              examples:
+                userExists:
+                  value:
+                    message: "A user with this username already exists."
+        "500":
+          description: "Internal server error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+              examples:
+                serverError:
+                  value:
+                    message: "An unexpected error occurred while creating the user."
+
+  /admin/user-list:
+    get:
+      summary: "GET admin/user-list"
+      operationId: "getUserList"
+      parameters:
+        - name: "q"
+          in: "query"
+          required: false
+          description: "Search query to filter users by username"
+          schema:
+            type: string
+            example: "Sunil"
+        - name: "startDate"
+          in: "query"
+          required: false
+          description: "Start date to filter users based on their creation date, default = 1900-01-01"
+          schema:
+            type: string
+            format: "date"
+            example: "2000-01-01"
+        - name: "endDate"
+          in: "query"
+          required: false
+          description: "End date to filter users based on their creation date, default = today's date"
+          schema:
+            type: string
+            format: "date"
+            example: "2020-01-01"
+        - name: "page"
+          in: "query"
+          required: false
+          description: "Page number for pagination"
+          schema:
+            type: integer
+            format: int32
+            example: 0
+        - name: "size"
+          in: "query"
+          required: false
+          description: "Number of users per page from 1 to 1000"
+          schema:
+            type: integer
+            format: int32
+            example: 10
+        - name: "sortBy"
+          in: "query"
+          required: false
+          description: "Field by which to sort the users (accepts username, createdAt, updatedAt)"
+          schema:
+            type: string
+            example: "username"
+        - name: "sortDir"
+          in: "query"
+          required: false
+          description: "Sort direction (asc or desc)"
+          schema:
+            type: string
+            example: "asc"
+      responses:
+        "200":
+          description: >-
+            User list successfully retrieved. 
+            - `page` and `size` **are not** provided -> an array of User objects.
+            - `page` or `size` **are** provided -> both pagination and user data.
+          content:
+            application/json:
+              examples:
+                noPagination:
+                  summary: "Response without pagination"
+                  description: "when page and size parameter are NOT given"
+                  value:
+                    - id: 1
+                      username: "exampleUser1"
+                      email: "user1@catascan.com"
+                      institutionName: "Cataract Eye Center"
+                    - id: 2
+                      username: "exampleUser2"
+                      email: "user2@catascan.com"
+                      institutionName: "Cataract Eye Center"
+                withPagination:
+                  summary: "Response with pagination"
+                  description: "when page and size parameter are given"
+                  value:
+                    pagination:
+                      currentPage: 0
+                      totalPages: 1
+                      totalElements: 2
+                      pageSize: 10
+                    data:
+                      - id: 1
+                        username: "exampleUser1"
+                        email: "user1@catascan.com"
+                        institutionName: "Cataract Eye Center"
+                      - id: 2
+                        username: "exampleUser2"
+                        email: "user2@catascan.com"
+                        institutionName: "Cataract Eye Center"
+        "400":
+          description: "Invalid query parameters"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+              examples:
+                invalidQuery:
+                  value:
+                    message: "Invalid query parameter(s) provided."
+        "500":
+          description: "Internal server error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+              examples:
+                serverError:
+                  value:
+                    message: "An unexpected error occurred while fetching the user list."
+
+  /user:
+    patch:
+      summary: "PATCH user"
+      operationId: "updateUserData"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateUserRequestDto"
+        required: true
+      responses:
+        "200":
+          description: "User data successfully updated"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserResponseDto"
+              examples:
+                success:
+                  value:
+                    id: 1
+                    username: "exampleUser1"
+                    email: "updatedemail@catascan.com"
+                    role: "admin"
+                    institutionName: "Updated Cataract Eye Center"
+        "400":
+          description: "Invalid input data"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+              examples:
+                invalidInput:
+                  value:
+                    message: "The data provided is invalid or incomplete."
+        "404":
+          description: "User not found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+              examples:
+                notFound:
+                  value:
+                    message: "User with the specified ID not found."
+        "500":
+          description: "Internal server error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+              examples:
+                serverError:
+                  value:
+                    message: "An unexpected error occurred while updating the user."
+
+    get:
+      summary: "GET user"
+      operationId: "getUserData"
+      description: "get current user data"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserResponseDto"
+  /admin/institution-list:
+    get:
+      summary: "GET admin/institutions"
+      operationId: "getInstitutionList"
+      description: "retrieve a list of institutions"
+      parameters:
+        - name: "page"
+          in: "query"
+          required: false
+          schema:
+            type: integer
+            format: int32
+        - name: "size"
+          in: "query"
+          required: false
+          schema:
+            type: integer
+            format: int32
+      responses:
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              examples:
+                withoutPagination:
+                  value:
+                    - institutionId: 101
+                      institutionName: "Cataract Eye Center"
+                      address: "123 Vision St, City, Country"
+                      createdDate: "2025-03-06"
+                    - institutionId: 102
+                      institutionName: "Eye Care Institute"
+                      address: "456 Eye Rd, City, Country"
+                      createdDate: "2025-03-07"
+                withPagination:
+                  value:
+                    pagination:
+                      currentPage: 0
+                      totalPages: 30
+                      totalElements: 60
+                      pageSize: 2
+                    data:
+                      - institutionId: 101
+                        institutionName: "Cataract Eye Center"
+                        address: "123 Vision St, City, Country"
+                        createdDate: "2025-03-06"
+                      - institutionId: 102
+                        institutionName: "Eye Care Institute"
+                        address: "456 Eye Rd, City, Country"
+                        createdDate: "2025-03-07"
+        "403":
+          description: "Forbidden"
+          content:
+            application/json:
+              schema:
+                example:
+                  message: "forbidden"
+
+  /admin/patient-list:
+    get:
+      summary: "GET admin/patient-list"
+      operationId: "getPatientListByAdmin"
+      parameters:
+        - name: "q"
+          in: "query"
+          required: false
+          description: "Search query to filter patients by name or other fields"
+          schema:
+            type: string
+        - name: "institution"
+          in: "query"
+          required: false
+          description: "Filter patients by associated institution name"
+          schema:
+            type: string
+        - name: "startDate"
+          in: "query"
+          required: false
+          description: "Filter patients by registration start date"
+          schema:
+            type: string
+            format: "date"
+        - name: "endDate"
+          in: "query"
+          required: false
+          description: "Filter patients by registration end date"
+          schema:
+            type: string
+            format: "date"
+        - name: "page"
+          in: "query"
+          required: false
+          description: "Page number for pagination"
+          schema:
+            type: integer
+            format: int32
+            example: 1
+        - name: "size"
+          in: "query"
+          required: false
+          description: "Number of patients per page"
+          schema:
+            type: integer
+            format: int32
+            example: 10
+        - name: "sortBy"
+          in: "query"
+          required: false
+          description: "Field to sort by (e.g., name, registrationDate), default=createdAt"
+          schema:
+            type: string
+        - name: "sortDir"
+          in: "query"
+          required: false
+          description: "Sort direction (asc or desc), default=desc"
+          schema:
+            type: string
+            example: "asc"
+        - name: "dataStatus"
+          in: "query"
+          required: false
+          description: "Status of the patient's data (e.g., active, inactive)"
+          schema:
+            type: integer
+            format: int32
+        - name: "sex"
+          in: "query"
+          required: false
+          description: "Filter by patient's sex"
+          schema:
+            type: string
+            example: "male"
+        - name: "dateOfBirthFrom"
+          in: "query"
+          required: false
+          description: "Filter by patient's date of birth range (start)"
+          schema:
+            type: string
+            format: "date"
+        - name: "dateOfBirthTo"
+          in: "query"
+          required: false
+          description: "Filter by patient's date of birth range (end)"
+          schema:
+            type: string
+            format: "date"
+      responses:
+        "200":
+          description: "Successfully retrieved list of patients"
+          content:
+            application/json:
+              examples:
+                withoutPagination:
+                  description: when  `page` and `size` parameters are NOT given
+                  value:
+                    - institutionName: "New Vision Center"
+                      patientId: 1
+                      name: "Vikram Singh"
+                      sex: "male"
+                      dateOfBirth: "1985-08-08"
+                      phoneNum: "9332211009"
+                      age: 36
+                      registrationDate: "2025-02-24"
+                      remarks: "new patient"
+                    - institutionName: "ABC Vision Center"
+                      patientId: 1
+                      name: "Rohan Das"
+                      sex: "other"
+                      dateOfBirth: "1954-12-20"
+                      phoneNum: "9349832339"
+                      age: 36
+                      registrationDate: "2024-11-01"
+                      remarks: "needs further observation"
+                withPagination:
+                  description: when  `page` and `size` parameters are given
+                  value:
+                    pagination:
+                      currentPage: 0
+                      totalPages: 30
+                      totalElements: 60
+                      pageSize: 2
+                    data:
+                      - institutionName: "New Vision Center"
+                        patientId: 1
+                        name: "Vikram Singh"
+                        sex: "male"
+                        dateOfBirth: "1985-08-08"
+                        phoneNum: "9332211009"
+                        age: 36
+                        registrationDate: "2025-02-24"
+                        remarks: "new patient"
+                      - institutionName: "ABC Vision Center"
+                        patientId: 32
+                        name: "Rohan Das"
+                        sex: "other"
+                        dateOfBirth: "1954-12-20"
+                        phoneNum: "9349832339"
+                        age: 36
+                        registrationDate: "2024-11-01"
+                        remarks: "needs further observation"
+  /admin/institution/{institutionId}/patients/{patientId}:
+    get:
+      summary: "GET admin/institution/{institutionId}/patients/{patientId}"
+      operationId: "getPatientByAdmin"
+      parameters:
+        - name: "institutionId"
+          in: "path"
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: "patientId"
+          in: "path"
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FullPatientDataDto"
+        "404":
+          description: "Patient Not Found"
+          content:
+            application/json:
+              schema:
+                example:
+                  message: "patient not found"
+    delete:
+      summary: "DELETE admin/institution/{institutionId}/patients/{patientId}"
+      operationId: "deletePatientPermanently"
+      parameters:
+        - name: "institutionId"
+          in: "path"
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: "patientId"
+          in: "path"
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                example:
+                  message: "patient successfully deleted"
+        "404":
+          description: "Patient Not Found"
+          content:
+            application/json:
+              schema:
+                example:
+                  message: "patient not found"
+    put:
+      summary: "PUT admin/institution/{institutionId}/patients/{patientId}"
+      operationId: "recoverPatient"
+      parameters:
+        - name: "institutionId"
+          in: "path"
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: "patientId"
+          in: "path"
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                example:
+                  message: "patient successfully recovered"
+
+        "404":
+          description: "Patient Not Found"
+          content:
+            application/json:
+              schema:
+                example:
+                  message: "patient not found"
+  /admin/report-list:
+    get:
+      summary: "GET admin/report-list"
+      operationId: "getReportListFromDateRangeAdmin"
+      parameters:
+        - name: "q"
+          in: "query"
+          required: false
+          schema:
+            type: string
+        - name: "institution"
+          in: "query"
+          required: false
+          schema:
+            type: string
+        - name: "startDate"
+          in: "query"
+          required: false
+          schema:
+            type: string
+        - name: "endDate"
+          in: "query"
+          required: false
+          schema:
+            type: string
+        - name: "page"
+          in: "query"
+          required: false
+          schema:
+            type: integer
+            format: int32
+        - name: "size"
+          in: "query"
+          required: false
+          schema:
+            type: integer
+            format: int32
+        - name: "sortBy"
+          in: "query"
+          required: false
+          schema:
+            type: string
+        - name: "sortDir"
+          in: "query"
+          required: false
+          schema:
+            type: string
+        - name: "sex"
+          in: "query"
+          required: false
+          schema:
+            type: string
+        - name: "status"
+          in: "query"
+          required: false
+          schema:
+            type: string
+        - name: "linkStatus"
+          in: "query"
+          required: false
+          schema:
+            type: integer
+            format: int32
+      responses:
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              examples:                 
+                withoutPagination:
+                  description: when  `page` and `size` parameters are NOT given
+                  value:
+                  - reportId: 2
+                    institutionName: "Cataract Eye Center"
+                    patientName: "Jane Doe"
+                    scanDate: "2025-03-01"
+                    leftAiResult: "lowRisk"
+                    rightAiResult: "ungradable"
+                    sex: "female"
+                    linkStatus: 1
+                  - reportId: 3
+                    institutionName: "New Delhi Vision Center"
+                    patientName: "Sunil Gupta"
+                    scanDate: "2025-03-01"
+                    leftAiResult: "lowRisk"
+                    rightAiResult: "requiresAttention"
+                    sex: "male"
+                    linkStatus: 0
+                withPagination:
+                  description: when  `page` and `size` parameters are given
+                  value:
+                    pagination:
+                      currentPage: 0
+                      totalPages: 30
+                      totalElements: 60
+                      pageSize: 2
+                    data:
+                      - reportId: 2
+                        institutionName: "Cataract Eye Center"
+                        patientName: "Jane Doe"
+                        scanDate: "2025-03-01"
+                        leftAiResult: "lowRisk"
+                        rightAiResult: "ungradable"
+                        sex: "female"
+                        linkStatus: 1
+                      - reportId: 3
+                        institutionName: "New Delhi Vision Center"
+                        patientName: "Sunil Gupta"
+                        scanDate: "2025-03-01"
+                        leftAiResult: "lowRisk"
+                        rightAiResult: "requiresAttention"
+                        sex: "male"
+                        linkStatus: 0
+  /admin/institution/{institutionId}/reports/{reportId}:
+    get:
+      summary: "GET admin/institution/{institutionId}/reports/{reportId}"
+      operationId: "getDetailReport"
+      parameters:
+        - name: "institutionId"
+          in: "path"
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: "reportId"
+          in: "path"
+          required: true
+          schema:
+            type: integer
+            format: "int64"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReportDetailResponseDto"
+        "404":
+          description: "Report Not Found"
+          content:
+            application/json:
+              schema:
+                example:
+                  message: "report not found"
+    delete:
+      summary: "DELETE admin/institution/{institutionId}/reports/{reportId}"
+      operationId: "deleteReport"
+      parameters:
+        - name: "institutionId"
+          in: "path"
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: "reportId"
+          in: "path"
+          required: true
+          schema:
+            type: integer
+            format: "int64"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                example:
+                  message: "successfully deleted"
+        "404":
+          description: "Report Not Found"
+          content:
+            application/json:
+              schema:
+                example:
+                  message: "report not found"
+  /patients/{patientId}/profile:
+    put:
+      summary: "PUT patients/{patientId}/profile"
+      operationId: "updatePatientProfile"
+      parameters:
+        - name: "patientId"
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateProfileRequestDto"
+        required: true
+      responses:
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PatientProfileResponseDto"
+        "404":
+          description: "Patient Not Found"
+          content:
+            application/json:
+              schema:
+                example:
+                  message: "patient not found"
+    post:
+      summary: "POST patients/{patientId}/profile"
+      operationId: "createPatientProfile"
+      parameters:
+        - name: "patientId"
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateProfileRequestDto"
+        required: true
+      responses:
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PatientProfileResponseDto"
+    delete:
+      summary: "DELETE patients/{patientId}/profile"
+      operationId: "deletePatientProfile"
+      parameters:
+        - name: "patientId"
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                example:
+                  message: "patient profile successfully deleted"
+    get:
+      summary: "GET patients/{patientId}/profile"
+      operationId: "getPatientProfiles"
+      parameters:
+        - name: "patientId"
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PatientProfileResponseDto"
+  /patients/{patientId}:
+    put:
+      summary: "PUT patients/{patientId}"
+      operationId: "updatePatient"
+      parameters:
+        - name: "patientId"
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdatePatientRequestDto"
+        required: true
+      responses:
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PatientResponseDto"
+        "404":
+          description: "Patient Not Found"
+          content:
+            application/json:
+              schema:
+                example:
+                  message: "patient not found or part of your institution"
+    delete:
+      summary: "DELETE patients/{patientId}"
+      operationId: "deletePatient"
+      parameters:
+        - name: "patientId"
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                example:
+                  message: "patient successfully deleted"
+        "404":
+          description: "Patient Not Found"
+          content:
+            application/json:
+              schema:
+                example:
+                  message: "patient not found or part of your institution"
+    get:
+      summary: "GET patients/{patientId}"
+      operationId: "getPatient"
+      parameters:
+        - name: "patientId"
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PatientResponseDto"
+        "404":
+          description: "Patient Not Found"
+          content:
+            application/json:
+              schema:
+                example:
+                  message: "patient not found or part of your institution"
+  /patients:
+    post:
+      summary: "POST patients"
+      operationId: "createPatient"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreatePatientRequestDto"
+        required: true
+      responses:
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PatientResponseDto"
+        "400":
+          description: "Bad Request"
+          content:
+            application/json:
+              schema:
+                example:
+                  message: "Validation failed"
+
+    get:
+      summary: "GET patients"
+      operationId: "getPatientList"
+      parameters:
+        - name: "q"
+          in: "query"
+          required: false
+          description: "search from the patient name"
+          schema:
+            type: string
+        - name: "startDate"
+          in: "query"
+          required: false
+          description: "the date of patient profile created"
+          schema:
+            type: string
+            format: "date"
+            example: "2021-01-20"
+        - name: "endDate"
+          in: "query"
+          required: false
+          description: "the date of patient profile created"
+          schema:
+            type: string
+            format: "date"
+            example: "2025-02-01"
+        - name: "page"
+          in: "query"
+          required: false
+          schema:
+            type: integer
+            format: int32
+        - name: "size"
+          in: "query"
+          required: false
+          description: "number ranging from 1 to 1000, default=10"
+          schema:
+            type: integer
+            format: int32
+            example: 2
+        - name: "sortBy"
+          in: "query"
+          required: false
+          description: "only accepts 'name', 'dateOfBirth', 'createdAt', or 'updatedAt' as 'sortBy', default=createdAt"
+          schema:
+            type: string
+        - name: "sortDir"
+          in: "query"
+          required: false
+          description: "default=desc"
+          schema:
+            type: string
+        - name: "dataStatus"
+          in: "query"
+          required: false
+          description: "for list of deleted patients: 0; else, 1, default=1"
+          schema:
+            type: integer
+            format: int32
+            example: 1
+        - name: "sex"
+          in: "query"
+          required: false
+          schema:
+            type: string
+            example: "male"
+        - name: "dateOfBirthFrom"
+          in: "query"
+          required: false
+          schema:
+            type: string
+            format: "date"
+            example: "1900-01-01"
+        - name: "dateOfBirthTo"
+          in: "query"
+          required: false
+          schema:
+            type: string
+            format: "date"
+            example: "2000-01-01"
+      responses:
+        "200":
+          description: "Successfully retrieved list of patients"
+          content:
+            application/json:
+              examples:
+                withoutPagination:
+                  description: when  `page` and `size` parameters are NOT given
+                  value:
+                    - institutionName: "New Vision Center"
+                      patientId: 1
+                      name: "Vikram Singh"
+                      sex: "male"
+                      dateOfBirth: "1985-08-08"
+                      phoneNum: "9332211009"
+                      age: 36
+                      registrationDate: "2025-02-24"
+                      remarks: "new patient"
+                    - institutionName: "ABC Vision Center"
+                      patientId: 13
+                      name: "Rohan Das"
+                      sex: "other"
+                      dateOfBirth: "1954-12-20"
+                      phoneNum: "9349832339"
+                      age: 36
+                      registrationDate: "2024-11-01"
+                      remarks: "needs further observation"
+                withPagination:
+                  description: when  `page` and `size` parameters are given
+                  value:
+                    pagination:
+                      currentPage: 0
+                      totalPages: 30
+                      totalElements: 60
+                      pageSize: 2
+                    data:
+                      - institutionName: "New Vision Center"
+                        patientId: 1
+                        name: "Vikram Singh"
+                        sex: "male"
+                        dateOfBirth: "1985-08-08"
+                        phoneNum: "9332211009"
+                        age: 36
+                        registrationDate: "2025-02-24"
+                        remarks: "new patient"
+                      - institutionName: "ABC Vision Center"
+                        patientId: 32
+                        name: "Rohan Das"
+                        sex: "other"
+                        dateOfBirth: "1954-12-20"
+                        phoneNum: "9349832339"
+                        age: 36
+                        registrationDate: "2024-11-01"
+                        remarks: "needs further observation"
+                  
+  /patients/export:
+    get:
+      summary: "GET patients/export"
+      operationId: "getPatientListAsCsv"
+      parameters:
+        - name: "q"
+          in: "query"
+          required: false
+          schema:
+            type: string
+        - name: "startDate"
+          in: "query"
+          required: false
+          schema:
+            type: string
+            format: "date"
+        - name: "endDate"
+          in: "query"
+          required: false
+          schema:
+            type: string
+            format: "date"
+        - name: "sortBy"
+          in: "query"
+          required: false
+          schema:
+            type: string
+        - name: "sortDir"
+          in: "query"
+          required: false
+          schema:
+            type: string
+        - name: "dataStatus"
+          in: "query"
+          required: false
+          schema:
+            type: integer
+            format: int32
+        - name: "sex"
+          in: "query"
+          required: false
+          schema:
+            type: string
+        - name: "dateOfBirthFrom"
+          in: "query"
+          required: false
+          schema:
+            type: string
+            format: "date-time"
+        - name: "dateOfBirthTo"
+          in: "query"
+          required: false
+          schema:
+            type: string
+            format: "date-time"
+      responses:
+        "200":
+          description: "Successfully returned CSV file"
+          content:
+            text/csv:
+              schema:
+                type: string
+                format: binary
+              example: "id,name,age\n1,John Doe,30\n2,Jane Smith,25"
+        "400":
+          description: "Bad Request - Invalid input parameters"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+              examples:
+                invalidInput:
+                  value:
+                    message: "The input parameters provided are invalid or malformed."
+        "401":
+          description: "Unauthorized - Authentication required"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+              examples:
+                unauthorized:
+                  value:
+                    message: "Authentication required to access this resource."
+        "404":
+          description: "Not Found - Resource not found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+              examples:
+                notFound:
+                  value:
+                    message: "The requested resource was not found."
+        "500":
+          description: "Internal Server Error - Something went wrong on the server"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+              examples:
+                serverError:
+                  value:
+                    message: "An unexpected error occurred while processing the request."
+
+  /patients/data/{patientId}:
+    get:
+      summary: "GET patients/data/{patientId}"
+      operationId: "getFullPatientData"
+      parameters:
+        - name: "patientId"
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FullPatientDataDto"
+        "404":
+          description: "Patient Not Found"
+          content:
+            application/json:
+              schema:
+                example:
+                  message: "patient not found"
+  /reports/{reportId}:
+    put:
+      summary: "PUT reports/{reportId}"
+      operationId: "updateReportById"
+      parameters:
+        - name: "reportId"
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateReportRequestDto"
+        required: true
+      responses:
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReportDetailResponseDto"
+        "404":
+          description: "Report Not Found"
+          content:
+            application/json:
+              schema:
+                example:
+                  message: "report not found"
+    delete:
+      summary: "DELETE reports/{reportId}"
+      operationId: "deleteReportById"
+      parameters:
+        - name: "reportId"
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                example:
+                  message: "report successfully deleted"
+
+        "404":
+          description: "Report Not Found"
+          content:
+            application/json:
+              schema:
+                example:
+                  message: "report not found"
+    get:
+      summary: "GET reports/{reportId}"
+      operationId: "getReportsById"
+      parameters:
+        - name: "reportId"
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReportDetailResponseDto"
+        "404":
+          description: "Report Not Found"
+          content:
+            application/json:
+              schema:
+                example:
+                  message: "report not found"
+  /reports:
+    post:
+      summary: "POST reports"
+      operationId: "uploadReport"
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              description: "report uploaded from mobile app. either one of leftImage or rightImage is required along with imageId"
+              type: object
+              properties:
+                leftImage:
+                  type: string
+                  format: binary
+                  description: "The file for the left eye image"
+                rightImage:
+                  type: string
+                  format: binary
+                  description: "The file for the right eye image"
+                imageId:
+                  type: string
+                  description: "The ID associated with the images in the form of name=gender(in 'm', 'f', or 'o')"
+                  example: "john doe=m"
+                  required: true
+                leftAiResult:
+                  type: string
+                  description: "AI result for the left eye image (only accepts 'lowRisk', 'requiresAttention', 'ungradable')"
+                rightAiResult:
+                  type: string
+                  description: "AI result for the right eye image (only accepts 'lowRisk', 'requiresAttention', 'ungradable')"
+                remarks:
+                  type: string
+                  description: "Remarks about the report"
+
+      responses:
+        "200":
+          description: "Successfully uploaded report"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReportResponseDto"
+
+    get:
+      summary: "GET reports"
+      operationId: "getReportListFromDateRange"
+      parameters:
+        - name: "q"
+          in: "query"
+          required: false
+          schema:
+            type: string
+        - name: "startDate"
+          in: "query"
+          required: false
+          schema:
+            type: string
+        - name: "endDate"
+          in: "query"
+          required: false
+          schema:
+            type: string
+        - name: "sortBy"
+          in: "query"
+          required: false
+          schema:
+            type: string
+        - name: "sortDir"
+          in: "query"
+          required: false
+          schema:
+            type: string
+        - name: "sex"
+          in: "query"
+          required: false
+          schema:
+            type: string
+        - name: "status"
+          in: "query"
+          required: false
+          schema:
+            type: string
+        - name: "linkStatus"
+          in: "query"
+          required: false
+          schema:
+            type: integer
+            format: int32
+      responses:
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              examples:                 
+                withoutPagination:
+                  description: when  `page` and `size` parameters are NOT given
+                  value:
+                  - reportId: 2
+                    institutionName: "Cataract Eye Center"
+                    patientName: "Jane Doe"
+                    scanDate: "2025-03-01"
+                    leftAiResult: "lowRisk"
+                    rightAiResult: "ungradable"
+                    sex: "female"
+                    linkStatus: 1
+                  - reportId: 3
+                    institutionName: "New Delhi Vision Center"
+                    patientName: "Sunil Gupta"
+                    scanDate: "2025-03-01"
+                    leftAiResult: "lowRisk"
+                    rightAiResult: "requiresAttention"
+                    sex: "male"
+                    linkStatus: 0
+                withPagination:
+                  description: when  `page` and `size` parameters are given
+                  value:
+                    pagination:
+                      currentPage: 0
+                      totalPages: 30
+                      totalElements: 60
+                      pageSize: 2
+                    data:
+                      - reportId: 2
+                        institutionName: "Cataract Eye Center"
+                        patientName: "Jane Doe"
+                        scanDate: "2025-03-01"
+                        leftAiResult: "lowRisk"
+                        rightAiResult: "ungradable"
+                        sex: "female"
+                        linkStatus: 1
+                      - reportId: 3
+                        institutionName: "New Delhi Vision Center"
+                        patientName: "Sunil Gupta"
+                        scanDate: "2025-03-01"
+                        leftAiResult: "lowRisk"
+                        rightAiResult: "requiresAttention"
+                        sex: "male"
+                        linkStatus: 0
+  /reports/{reportId}/link-patient/{patientId}:
+    post:
+      summary: "POST reports/{reportId}/link-patient/{patientId}"
+      operationId: "linkReportWithPatient"
+      parameters:
+        - name: "reportId"
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: "patientId"
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        "202":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReportLinkResponseDto"
+        "404":
+          description: "Report or patient not found"
+          content:
+            application/json:
+              schema:
+                example:
+                  message: "report not found"
+  /reports/{reportId}/unlink-patient:
+    post:
+      summary: "POST reports/{reportId}/unlink-patient"
+      operationId: "unlinkReportWithPatient"
+      parameters:
+        - name: "reportId"
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                example:
+                  patientId: 0
+                  patientName: ""
+                  reportId: 789456
+                  message: "The report has been successfully unlinked"
+  /reports/patient/{patientId}:
+    get:
+      summary: "GET reports/patient/{patientId}"
+      operationId: "getReportByPatient"
+      parameters:
+        - name: "patientId"
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: "q"
+          in: "query"
+          required: false
+          schema:
+            type: string
+        - name: "startDate"
+          in: "query"
+          required: false
+          schema:
+            type: string
+        - name: "endDate"
+          in: "query"
+          required: false
+          schema:
+            type: string
+        - name: "page"
+          in: "query"
+          required: false
+          schema:
+            type: integer
+            format: int32
+        - name: "size"
+          in: "query"
+          required: false
+          schema:
+            type: integer
+            format: int32
+        - name: "sortBy"
+          in: "query"
+          required: false
+          schema:
+            type: string
+        - name: "sortDir"
+          in: "query"
+          required: false
+          schema:
+            type: string
+        - name: "sex"
+          in: "query"
+          required: false
+          schema:
+            type: string
+        - name: "status"
+          in: "query"
+          required: false
+          schema:
+            type: string
+        - name: "linkStatus"
+          in: "query"
+          required: false
+          schema:
+            type: integer
+            format: int32
+      responses:
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  pagination:
+                    $ref: "#/components/schemas/Pagination"
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/ReportDetailResponseDto"
+  /reports/{reportId}/candidates-list:
+    get:
+      summary: "GET reports/{reportId}/candidates-list"
+      operationId: "getReportCandidatePatients"
+      parameters:
+        - name: "reportId"
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: "q"
+          in: "query"
+          required: false
+          schema:
+            type: string
+        - name: "startDate"
+          in: "query"
+          required: false
+          schema:
+            type: string
+            format: "date"
+        - name: "endDate"
+          in: "query"
+          required: false
+          schema:
+            type: string
+            format: "date"
+        - name: "page"
+          in: "query"
+          required: false
+          schema:
+            type: integer
+            format: int32
+        - name: "size"
+          in: "query"
+          required: false
+          schema:
+            type: integer
+            format: int32
+        - name: "sortBy"
+          in: "query"
+          required: false
+          schema:
+            type: string
+        - name: "sortDir"
+          in: "query"
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: "Successfully retrieved list of patients"
+          content:
+            application/json:
+              examples:
+                withoutPagination:
+                  description: when  `page` and `size` parameters are NOT given
+                  value:
+                    - institutionName: "New Vision Center"
+                      patientId: 1
+                      name: "Vikram Singh"
+                      sex: "male"
+                      dateOfBirth: "1985-08-08"
+                      phoneNum: "9332211009"
+                      age: 36
+                      registrationDate: "2025-02-24"
+                      remarks: "new patient"
+                    - institutionName: "ABC Vision Center"
+                      patientId: 13
+                      name: "Vikram Yadav"
+                      sex: "male"
+                      dateOfBirth: "1954-12-20"
+                      phoneNum: "9349832339"
+                      age: 36
+                      registrationDate: "2024-11-01"
+                      remarks: "needs further observation"
+                withPagination:
+                  description: when  `page` and `size` parameters are given
+                  value:
+                    pagination:
+                      currentPage: 0
+                      totalPages: 30
+                      totalElements: 60
+                      pageSize: 2
+                    data:
+                      - institutionName: "New Vision Center"
+                        patientId: 1
+                        name: "Vikram Singh"
+                        sex: "male"
+                        dateOfBirth: "1985-08-08"
+                        phoneNum: "9332211009"
+                        age: 36
+                        registrationDate: "2025-02-24"
+                        remarks: "new patient"
+                      - institutionName: "ABC Vision Center"
+                        patientId: 32
+                        name: "Vikram Yadavs"
+                        sex: "male"
+                        dateOfBirth: "1954-12-20"
+                        phoneNum: "9349832339"
+                        age: 36
+                        registrationDate: "2024-11-01"
+                        remarks: "needs further observation"
+  /reports/unlinked-num:
+    get:
+      summary: "GET reports/unlinked-num"
+      operationId: "getUnlinkedReportsNum"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: integer
+                format: int64
+                example: 20
+  /reports/{reportId}/comments:
+    get:
+      summary: "GET reports/{reportId}/comments"
+      operationId: "getReportComments"
+      parameters:
+        - name: "reportId"
+          in: "path"
+          required: true
+          schema:
+            type: "integer"
+            format: "int64"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReportCommentResponseDto"
+    put:
+      summary: "PUT reports/{reportId}/comments"
+      operationId: "putReportComments"
+      parameters:
+        - name: "reportId"
+          in: "path"
+          required: true
+          schema:
+            type: "integer"
+            format: "int64"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              example:
+                comments: "need care"
+        required: true
+      responses:
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReportCommentResponseDto"
+  /auth/login:
+    post:
+      summary: "POST auth/login"
+      operationId: "authenticate"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserLoginDto"
+        required: true
+      responses:
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TokenResponse"
+        "401":
+          description: "Unauthorized by invalid username or password"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+              examples:
+                invalidUsernameOrPassword:
+                  value:
+                    message: "The username and/or password provided is invalid or incomplete."
+        "500":
+          description: "Internal Server Error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+              examples:
+                internalServerError:
+                  value:
+                    message: "An unexpected error occurred while authenticating user."
+  /auth/logout:
+    post:
+      summary: "POST auth/logout"
+      operationId: "logout"
+      parameters:
+        - name: "Authorization"
+          in: "header"
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LogoutResponse"
+        "404":
+          description: "Token Not Found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LogoutResponse"
+              examples:
+                tokenNotFound:
+                  value:
+                    message: "Token not found in header."
+  /auth/refresh:
+    post:
+      summary: "POST auth/refresh"
+      operationId: "refreshAccessToken"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RefreshTokenRequestDto"
+        required: true
+      responses:
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TokenResponse"
+              examples:
+                refreshToken:
+                  value:
+                    token: "v4.local.hgioaenrgiobnI03RG093JF..."
+        "401":
+          description: "Unauthorized"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+              examples:
+                tokenNotFound:
+                  value:
+                    message: "Token not found in header."
+components:
+  securitySchemes:
+    PasetoAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: PASETO V4
+      description: "authentication using paseto"
+
+  schemas:
+    InstitutionResponseDto:
+      type: object
+      properties:
+        institutionId:
+          type: integer
+          format: int32
+          example: 101
+        institutionName:
+          type: string
+          example: "Cataract Eye Center"
+        address:
+          type: string
+          example: "123 Vision St, City, Country"
+        createdDate:
+          type: string
+          example: "2025-03-06"
+
+    UpdateUserRequestDto:
+      type: object
+      properties:
+        username:
+          type: string
+          example: "exampleUser1"
+        password:
+          type: string
+          example: "secretPass"
+        email:
+          type: string
+          example: "user@catascan.com"
+        institutionName:
+          type: string
+          example: "Center"
+
+    UserResponseDto:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 1
+        username:
+          type: string
+          example: "exampleUser1"
+        email:
+          type: string
+          example: "user@catascan.com"
+        role:
+          type: string
+          example: "admin"
+        institutionName:
+          type: string
+          example: "Cataract Eye Center"
+        createdDate:
+          type: string
+          format: date-time
+        updatedDate:
+          type: string
+          format: date-time
+
+
+    CreateUserRequestDto:
+      type: object
+      properties:
+        username:
+          type: string
+          maxLength: 20
+          example: "newUser"
+        password:
+          type: string
+          minLength: 8
+          maxLength: 32
+          example: "newPassword"
+        email:
+          type: string
+          nullable: true
+          example: "newuser@catascan.com"
+        institutionName:
+          type: string
+          example: "Eye Care Institute"
+
+    ErrorResponseDto:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "User not found"
+
+    PatientResponseDto:
+      type: object
+      properties:
+        institutionName:
+          type: string
+          example: "Cataract Eye Center"
+        patientId:
+          type: integer
+          format: int32
+          example: 123
+        name:
+          type: string
+          example: "John Doe"
+        sex:
+          type: string
+          example: "male"
+        dateOfBirth:
+          type: string
+          example: "1980-05-15"
+        phoneNum:
+          type: string
+          example: "+1234567890"
+        age:
+          type: integer
+          format: int32
+          example: 45
+        registrationDate:
+          type: string
+          example: "2025-01-10"
+
+    ReportSimpleResponseDto:
+      type: object
+      properties:
+        reportId:
+          type: integer
+          format: int64
+          example: 789456
+        institutionName:
+          type: string
+          example: "Cataract Eye Center"
+        patientName:
+          type: string
+          example: "John Doe"
+        scanDate:
+          type: string
+          example: "2025-03-01"
+        leftAiResult:
+          type: string
+          example: "lowRisk"
+        rightAiResult:
+          type: string
+          example: "ungradable"
+        sex:
+          type: string
+          example: "male"
+        linkStatus:
+          type: integer
+          format: int32
+          example: 1
+
+    PatientHealthInfo:
+      type: object
+      properties:
+        cataract:
+          type: boolean
+          example: true
+        diabetes:
+          type: boolean
+          example: false
+        hypertension:
+          type: boolean
+          example: true
+        dontKnow:
+          type: boolean
+          example: false
+        systolicBp:
+          type: integer
+          format: int32
+          example: 120
+        diastolicBp:
+          type: integer
+          format: int32
+          example: 80
+        rightEyeVision:
+          type: number
+          format: double
+          example: 0.8
+        leftEyeVision:
+          type: number
+          format: double
+          example: 0.7
+        bloodSugarLevel:
+          type: integer
+          format: int32
+          example: 95
+        visitDate:
+          type: string
+          format: date
+          example: "2025-03-06"
+
+    UpdateProfileRequestDto:
+      type: object
+      properties:
+        remarks:
+          type: string
+          example: "Patient showed improvement."
+        healthInfo:
+          $ref: "#/components/schemas/PatientHealthInfo"
+        patientId:
+          type: integer
+          format: int32
+          example: 123
+
+    PatientProfileResponseDto:
+      type: object
+      properties:
+        profileId:
+          type: integer
+          format: int64
+          example: 456
+        healthInfo:
+          $ref: "#/components/schemas/PatientHealthInfo"
+        comments:
+          type: string
+          example: "need to observe carefully"
+
+    CreateProfileRequestDto:
+      type: object
+      properties:
+        remarks:
+          type: string
+          example: "Initial check-up"
+        healthInfo:
+          $ref: "#/components/schemas/PatientHealthInfo"
+
+    UpdatePatientRequestDto:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "John Doe"
+        dateOfBirth:
+          type: string
+          example: "1980-05-15"
+        phoneNum:
+          type: string
+          example: "+1234567890"
+        registrationDate:
+          type: string
+          example: "2025-01-10"
+
+    CreatePatientRequestDto:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "Jane Smith"
+        sex:
+          type: string
+          example: "Female"
+          description: "'male', 'female' or 'other' is accepted"
+        phoneNum:
+          type: string
+          example: "+9876543210"
+        registrationDate:
+          type: string
+          format: date
+          example: "2025-03-06"
+        dateOfBirth:
+          type: string
+          format: date
+          example: "1990-10-25"
+        remarks:
+          type: string
+          example: "Patient referred for cataract check"
+        healthInfo:
+          $ref: "#/components/schemas/PatientHealthInfo"
+
+    PatientReportResponseDto:
+      type: object
+      properties:
+        reportId:
+          type: integer
+          format: int64
+        leftEyeImagePath:
+          type: string
+          example: "https://s3-bucket.com/images/left_eye.jpg"
+        rightEyeImagePath:
+          type: string
+          example: "https://s3-bucket.com/images/right_eye.png"
+        scanDate:
+          type: string
+          example: "2025-01-02 14:00:00"
+        leftAiResult:
+          type: string
+          example: "lowRisk"
+        rightAiResult:
+          type: string
+          example: "requiresAttention"
+        leftEyeDiagnosis:
+          type: string
+          example: "certainlyCataract"
+        rightEyeDiagnosis:
+          type: string
+          example: "certainlyNormal"
+        leftEyeRemarks:
+          type: string
+          example: "needs further observation"
+        rightEyeRemarks:
+          type: string
+          example: "certainly normal"
+    FullPatientDataDto:
+      type: object
+      properties:
+        patientName:
+          type: string
+        dateOfBirth:
+          type: string
+        age:
+          type: integer
+          format: int32
+        phoneNumber:
+          type: string
+        healthInfo:
+          $ref: "#/components/schemas/PatientHealthInfo"
+        scanResults:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/PatientReportResponseDto"
+
+    UpdateReportRequestDto:
+      type: object
+      properties:
+        leftEyeRemarks:
+          type: string
+          example: "No significant change"
+        rightEyeRemarks:
+          type: string
+          example: "Mild cataract detected"
+        leftEyeDiagnosis:
+          type: string
+          example: "certainlyNormal"
+        rightEyeDiagnosis:
+          type: string
+          example: "probablyCataract"
+        comments:
+          type: string
+          example: "need referral to a bigger medical center"
+
+    ReportDetailResponseDto:
+      type: object
+      properties:
+        reportId:
+          type: integer
+          format: int64
+          example: 123456
+        scanDate:
+          type: string
+          example: "2025-03-06"
+        leftAiResult:
+          type: string
+          example: "lowRisk"
+        rightAiResult:
+          type: string
+          example: "requiresAttention"
+        linkStatus:
+          type: integer
+          format: int32
+          example: 2
+        patientName:
+          type: string
+          example: "John Doe"
+        leftEyeImageFilePath:
+          type: string
+          example: "https://s3-bucket.com/images/left_eye.png"
+        rightEyeImageFilePath:
+          type: string
+          example: "https://s3-bucket.com/images/right_eye.png"
+        leftEyeDiagnosis:
+          type: string
+          example: "uncertain"
+        rightEyeDiagnosis:
+          type: string
+          example: "certainlyCataract"
+        leftEyeRemarks:
+          type: string
+          example: "No abnormalities"
+        rightEyeRemarks:
+          type: string
+          example: "Cataract detected"
+        comments:
+          type: string
+          example: "Need to observe carefully"
+
+    ReportResponseDto:
+      type: object
+      properties:
+        reportId:
+          type: integer
+          example: 789123
+        leftImageFilePath:
+          type: string
+          example: "https://s3-bucket.com/images/right_eye.png"
+        rightImageFilePath:
+          type: string
+          example: "https://s3-bucket.com/images/right_eye.png"
+        scanDate:
+          type: string
+          example: "2025-03-01 09:55:02"
+        leftAiResult:
+          type: string
+          example: "lowRisk"
+        rightAiResult:
+          type: string
+          example: "requiresAttention"
+        imageIdentifier:
+          type: string
+          example: "Sunil Patel=m"
+
+    Pagination:
+      type: object
+      properties:
+        currentPage:
+          type: integer
+          format: int32
+          example: 0
+        totalPages:
+          type: integer
+          format: int32
+          example: 1000
+        totalElements:
+          type: integer
+          format: int32
+          example: 28492
+        pageSize:
+          type: integer
+          format: int32
+          example: 20
+
+    ReportLinkResponseDto:
+      type: object
+      properties:
+        patientId:
+          type: integer
+          format: int32
+          example: 123
+        patientName:
+          type: string
+          example: "John Doe"
+        reportId:
+          type: integer
+          format: int64
+          example: 789456
+        message:
+          type: string
+          example: "The report has been successfully linked"
+    ReportCommentResponseDto:
+      type: object
+      properties:
+        reportId:
+          type: integer
+          example: 21
+        comments:
+          type: string
+          example: "first time visitor"
+
+    UserLoginDto:
+      type: object
+      properties:
+        username:
+          type: string
+          example: "exampleUser1"
+        password:
+          type: string
+          example: "secretPass"
+
+    TokenResponse:
+      type: object
+      properties:
+        token:
+          type: string
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJhcHBsaWNhdGlvbiIsInN1Y..."
+
+    LogoutResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "Successfully logged out"
+
+    RefreshTokenRequestDto:
+      type: object
+      properties:
+        refreshToken:
+          type: string
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJhcHBsaWNhdGl..."
