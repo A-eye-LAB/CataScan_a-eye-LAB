@@ -17,3 +17,12 @@
 [Hugging-face Link](https://huggingface.co/a-eyelab/cataract)
 
 ## 사용법
+### Model train
+```
+python src/train.py --cfg src/config/train.yaml
+```
+
+### Model evaluation
+```
+python src/eval.py --dataset_path /dataset/{your_dataset or kaggle_cataract_nand(default)}
+```
