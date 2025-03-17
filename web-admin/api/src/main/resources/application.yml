@@ -1,0 +1,89 @@
+spring:
+  application:
+    name: catascan-web-admin
+  datasource:
+    url: jdbc:postgresql://localhost:5432/postgres?allowPublicKeyRetrieval=true&useSSL=false
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      connection-init-sql: SET TIME ZONE 'UTC'
+
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 10MB
+      max-request-size: 30MB
+
+  jpa:
+    open-in-view: true
+    show-sql: true
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+  mvc:
+    log-request-details: true
+  security:
+    user:
+      name: admin
+      password: Su709vdgAocUnM2K
+
+server:
+  port: 8080
+  servlet:
+    encoding:
+      enabled: true
+      charset: UTF-8
+      force: true
+      force-request: true
+      force-response: true
+  shutdown: graceful
+
+logging:
+  level:
+    root: DEBUG
+    org.springframework: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.org.cataract: DEBUG
+
+app:
+  token:
+    secret: Hn0AG0UI1yiNyPQBmda2BiuHT5oCu4je
+    footer: Eyelab-Paseto-Token
+    expire:
+      hours: 12
+    cleanup:
+      cron: "0 0 * * * ?"
+
+  admin:
+    username: LabSDAdmin
+    password: labSDUser2025!
+    email: cs@labsd.net
+    institution: LabSD
+
+  image:
+    filepath: /app/uploads
+    baseurl: /reports/images
+
+  host:
+    url: http://localhost
+    port: 8080
+
+  patient:
+    retention:
+      cron: "0 0 1 * * ?"
+      days: 2000
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "health,info,metrics,prometheus"
+      base-path: "/management"
+  prometheus:
+    metrics:
+      export:
+        enabled: true

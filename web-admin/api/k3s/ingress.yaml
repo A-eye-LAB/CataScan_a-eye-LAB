@@ -1,0 +1,23 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: catascan-api-ingress
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+spec:
+  ingressClassName: nginx 
+  tls:
+    - hosts:
+        - localhost       # 퍼블릭 주소로 변경
+      secretName: catascan-api-tls       # Cert하고 키 담긴 tls-secret
+  rules:
+    - host: localhost      # 퍼블릭 주소로 변경
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: catascan-api-service
+                port:
+                  number: 8080

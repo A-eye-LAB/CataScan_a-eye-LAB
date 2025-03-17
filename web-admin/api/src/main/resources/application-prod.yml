@@ -1,0 +1,52 @@
+# -----------------------------
+# Production profile
+# -----------------------------
+spring:
+  datasource:
+    url: jdbc:postgresql://postgres_db:5432/postgres?allowPublicKeyRetrieval=true&useSSL=false
+    username: postgres
+    password: postgres
+    hikari:
+      maximum-pool-size: 20
+      data-source-properties:
+        cache-prep-stmts: true
+        prep-stmt-cache-size: 250
+        prep-stmt-cache-sql-limit: 2048
+        use-server-prep-stmts: true
+        user-local-session-state: true
+        cache-result-set-metadata: true
+        cache-server-configuration: true
+        elide-set-auto-commits: true
+        maintain-time-stats: false
+
+  mvc:
+    log-request-details: false
+  jpa:
+    open-in-view: false
+    show-sql: false
+    hibernate:
+      ddl-auto: update
+
+logging:
+  level:
+    root: INFO
+    org.springframework: INFO
+    org.hibernate.SQL: WARN
+    org.cataract: INFO
+  file:
+    name: catascan-api.log
+    path: /var/log/catascan-api
+
+app:
+  token:
+    secret: Hn0AG0UI1yiNyPQBmda2BiuHT5oCu4je
+    footer: Catascan-Paseto-Token
+  admin:
+    username: admin
+    password: wiulrgnds2
+    email: cs@labsd.net
+    institution: LabSD
+  image:
+    bucket:
+      name: eyelab-prod
+      region: ap-northeast-2
