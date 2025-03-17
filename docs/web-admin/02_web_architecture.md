@@ -2,11 +2,6 @@
 
 이 문서에서는 CataScan 웹 어드민의 전체적인 구조와 주요 컴포넌트에 대해 설명합니다.
 
-[처음으로](../overview.md) |
-[소개로](00_introduction.md) |
-[이전: 빌드 및 배포](01_build_and_deployment.md) |
-[다음: API](03_api.md)
-
 ## Front-End
 
 ### Development Environment
@@ -62,3 +57,58 @@
 - Admin의 페이지는 리스트 페이지/상세 페이지로 나뉩니다.
   - 예컨대 `/reports`는 리스트 페이지, `/reports/[reportId]`는 상세페이지로 접속되는 형태입니다.
   - 상세 페이지에선 한번에 2개의 페이지가 렌더링되도록 [Parellel Routes](https://nextjs.org/docs/app/building-your-application/routing/parallel-routes) 방식을 이용하였습니다.
+
+
+## Back-end
+
+### Development Environment
+- **Library/Framework and Language**
+  - Java 17 (Eclipse Temurin)
+  - Spring Boot (3.4.0)
+- **Web Application Server**
+  - Apache Tomcat (10.1.36)
+- **Build Tool**
+  - Maven (3.9.9)
+- **Container Service**
+  - Docker
+  - Kubernetes
+- **Monitoring**
+  - Prometheus (3.2.1)
+  - Grafana (11.5.2)
+
+
+### Directory Structure
+
+```bash
+.
+├── k3s: 쿠버네티스 이용 배포 파일 모음  
+├── jmx: 자바 JMX 모니터링 관련 파일
+├── src: 자바 소스코드 모음
+│    └── app.main.java.org.cataract.web  
+│        ├── application.service: 서비스계층 소스코드 모음
+│        ├── bootstrap: 어플리케이션 시작시 구동되는 소스코드 모음
+│        ├── config: 설정 관련 소스코드 모음
+│        ├── domain: 엔티티, 도메인, 예외처리 관련 소스코드 모음
+│        ├── helper: 날짜 변환, 유효성 관련 등 유틸 소스코드 모음
+│        ├── infra: 레포지토리 계층 코드 모음
+│        └── presentation: 컨트롤러 계층 및 요청/응답바디를 포함하는 Dto등 
+│
+├── docker-compose.yml: 개발서버용 도커컴포즈 환경 구성
+├── Dockerfile: API서버 컨테이너 이미지 빌드용 Dockerfile
+├── prometheus.yml: 개발서버용 Prometheus 환경 구성
+└── pom.xml: 자바 라이브러리 구성(Maven) 
+
+```
+
+
+### 주요 특징
+- 개발/테스트용 환경 구성은 Docker-compose를 이용해서 테스트해볼 수 있도록 단순히 EC2인스턴스 하나로 docker-compose를 통해서 모니터링까지 할 수 있도록 구성했습니다. 
+- 모니터링은 Grafana와 Prometheus를 통해 API 서버 관련 사항을 모니터링할 수 있도록 구성했습니다. 
+- 단일노드 클러스터로 작동하기 위해 경량형 쿠버네티스인 k3s를 활용했습니다.
+- CI/CD는 별도로 구성해야 동작할 수 있습니다. 
+
+
+[처음으로](../overview.md) |
+[소개로](00_introduction.md) |
+[이전: 빌드 및 배포](01_build_and_deployment.md) |
+[다음: API](03_api.md)

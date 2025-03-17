@@ -1,0 +1,85 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: catascan-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: catascan-api
+  template:
+    metadata:
+      labels:
+        app: catascan-api
+    spec:
+      containers:
+        - name: catascan-api
+          image: catascan-api:1.0.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              valueFrom:
+                configMapKeyRef:
+                  name: api-config
+                  key: SPRING_PROFILES_ACTIVE
+            - name: SPRING_DATASOURCE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: api-config
+                  key: SPRING_DATASOURCE_URL
+            - name: APP_IMAGE_BUCKET_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: api-config
+                  key: APP_IMAGE_BUCKET_NAME
+            - name: APP_IMAGE_BUCKET_REGION
+              valueFrom:
+                configMapKeyRef:
+                  name: api-config
+                  key: APP_IMAGE_BUCKET_REGION
+            - name: SPRING_DATASOURCE_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: db-username
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: db-password
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: aws-access-key
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: aws-secret-key
+          livenessProbe:
+            httpGet:
+              path: /management/health
+              port: 8080
+            initialDelaySeconds: 180
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+
+          readinessProbe:
+            httpGet:
+              path: /management/health
+              port: 8080
+            initialDelaySeconds: 180
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "1Gi"
+              cpu: "500m"
