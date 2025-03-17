@@ -4,7 +4,6 @@ import org.cataract.web.domain.Institution;
 import org.cataract.web.presentation.dto.responses.ReportCommentResponseDto;
 import org.cataract.web.presentation.dto.requests.*;
 import org.cataract.web.presentation.dto.responses.*;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;

@@ -144,7 +144,7 @@ public class PatientServiceImpl implements PatientService {
         log.debug("[{}] retrieve patients list with dto {}", institution, patientListRequestDto.toString());
         if (pageable.isPaged()) {
             Sort.Direction direction = Sort.Direction.fromString(patientListRequestDto.getSortDir());
-            pageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), direction);
+            pageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), Sort.by(direction, patientListRequestDto.getSortBy()));
             Page<Patient> patientsList = patientRepository.findAll(spec, pageable);
             return patientsList.map(PatientResponseDto::toDto);
         } else {

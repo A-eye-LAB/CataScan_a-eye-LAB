@@ -7,13 +7,9 @@ import org.cataract.web.domain.Institution;
 import org.cataract.web.domain.exception.InstitutionNotFoundException;
 import org.cataract.web.infra.InstitutionRepository;
 import org.cataract.web.presentation.dto.responses.InstitutionResponseDto;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.stream.Collectors;
 
 @Service

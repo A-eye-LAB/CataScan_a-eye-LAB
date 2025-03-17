@@ -6,7 +6,6 @@ import lombok.Setter;
 import org.cataract.web.presentation.dto.requests.CreatePatientRequestDto;
 import org.cataract.web.presentation.dto.requests.CreateProfileRequestDto;
 import org.cataract.web.presentation.dto.requests.UpdateProfileRequestDto;
-import org.hibernate.annotations.ColumnDefault;
 
 import java.util.Date;
 
@@ -37,15 +36,18 @@ public class PatientProfiles {
 
     public PatientProfiles(CreateProfileRequestDto createProfileRequestDto) {
         this.remarks = createProfileRequestDto.getRemarks();
-        this.additionalMedicalInfo = createProfileRequestDto.getHealthInfo().toString();
+        if (createProfileRequestDto.getHealthInfo() != null) {
+            this.additionalMedicalInfo = createProfileRequestDto.getHealthInfo().toString();
+        }
         this.visitDate = createProfileRequestDto.getHealthInfo().getVisitDate();
     }
 
     public PatientProfiles(UpdateProfileRequestDto updateProfileRequestDto) {
 
         this.remarks = updateProfileRequestDto.getRemarks();
-        this.additionalMedicalInfo = updateProfileRequestDto.getHealthInfo().toString();
-
+        if (updateProfileRequestDto.getHealthInfo() != null) {
+            this.additionalMedicalInfo = updateProfileRequestDto.getHealthInfo().toString();
+        }
     }
 
     public PatientProfiles() {
@@ -58,6 +60,11 @@ public class PatientProfiles {
         this.patient = patient;
         this.institution = patient.getInstitution();
         this.remarks = createPatientRequestDto.getRemarks();
-        this.additionalMedicalInfo = createPatientRequestDto.getHealthInfo().toString();
+        if (createPatientRequestDto.getHealthInfo() != null) {
+            this.additionalMedicalInfo = createPatientRequestDto.getHealthInfo().toString();
+        } else {
+            this.additionalMedicalInfo = new PatientHealthInfo().toString();
+        }
+
     }
 }

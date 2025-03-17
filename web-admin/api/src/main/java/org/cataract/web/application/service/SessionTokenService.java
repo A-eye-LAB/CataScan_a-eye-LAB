@@ -6,8 +6,6 @@ import org.cataract.web.domain.SessionToken;
 import org.cataract.web.domain.User;
 import org.cataract.web.domain.exception.InvalidTokenException;
 import org.paseto4j.commons.PasetoException;
-
-import java.time.OffsetDateTime;
 import java.util.Optional;
 
 public interface SessionTokenService {

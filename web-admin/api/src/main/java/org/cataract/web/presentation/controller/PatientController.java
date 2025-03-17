@@ -9,7 +9,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.cataract.web.application.service.PatientService;
 import org.cataract.web.application.service.UserService;
 import org.cataract.web.domain.Institution;
-import org.cataract.web.presentation.dto.ResponseDto;
 import org.cataract.web.presentation.dto.requests.CreatePatientRequestDto;
 import org.cataract.web.presentation.dto.requests.PatientListRequestDto;
 import org.cataract.web.presentation.dto.requests.UpdatePatientRequestDto;
@@ -32,7 +31,6 @@ import org.springframework.web.bind.annotation.*;
 import java.io.ByteArrayInputStream;
 import java.time.LocalDate;
 import java.util.Date;
-import java.util.List;
 
 @RestController
 @RequestMapping("/patients")

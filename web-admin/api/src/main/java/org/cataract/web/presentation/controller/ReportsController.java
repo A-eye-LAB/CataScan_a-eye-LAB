@@ -10,7 +10,6 @@ import org.cataract.web.application.service.ReportsService;
 import org.cataract.web.application.service.UserService;
 import org.cataract.web.domain.AiResult;
 import org.cataract.web.domain.Institution;
-import org.cataract.web.domain.Patient;
 import org.cataract.web.domain.exception.BadUploadRequestException;
 import org.cataract.web.domain.exception.InvalidTokenException;
 import org.cataract.web.domain.exception.PatientNotFoundException;
