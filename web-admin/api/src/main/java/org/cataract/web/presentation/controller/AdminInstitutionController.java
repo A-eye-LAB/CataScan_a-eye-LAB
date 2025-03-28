@@ -47,7 +47,7 @@ public class AdminInstitutionController {
         log.info("ADMIN Received request to retrieve institution list");
         try {
             Pageable pageable = (page != null && size != null) ? Pageable.ofSize(size).withPage(page) : Pageable.unpaged();
-            Object institutionResponseDtoList = institutionService.getAllInstitutions(pageable);
+            var institutionResponseDtoList = institutionService.getAllInstitutions(pageable);
             log.info("ADMIN retrieved institution list successfully");
             if (pageable.isPaged()) {
                 return ResponseEntity.ok(new OffsetPaginationResult<>((Page<InstitutionResponseDto>) institutionResponseDtoList));
@@ -91,7 +91,6 @@ public class AdminInstitutionController {
             @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date dateOfBirthFrom,
             @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date dateOfBirthTo,
             Authentication authentication) {
-        String username = authentication.getName();
         PatientListRequestDto patientListRequestDto =
                 new PatientListRequestDto(query, startDate, endDate, page, size, sortBy, sortDir,
                         dataStatus, sex, dateOfBirthFrom, dateOfBirthTo);
@@ -107,10 +106,10 @@ public class AdminInstitutionController {
                 patientResponseDtoList = patientService.getPatientsByInstitution(null, patientListRequestDto, pageable);
             }
             log.info("ADMIN [{}] patient list {} retrieval success", institutionName, patientListRequestDto);
-            if (pageable.isUnpaged()) {
-                return ResponseEntity.ok(patientResponseDtoList);
+            if (pageable.isPaged()) {
+                return ResponseEntity.ok(new OffsetPaginationResult<>((Page<PatientResponseDto>) patientResponseDtoList));
             }
-            return ResponseEntity.ok(new OffsetPaginationResult<>((Page<PatientResponseDto>) patientResponseDtoList));
+            return ResponseEntity.ok(patientResponseDtoList);
         } catch (Exception ex) {
             log.error("ADMIN [{}] patient list {} retrieval failed", institutionName, patientListRequestDto, ex);
             return ResponseEntity.internalServerError().body(new ErrorResponseDto(ex));
@@ -153,9 +152,9 @@ public class AdminInstitutionController {
                                                            @PathVariable Integer patientId) {
         Institution institution = institutionService.getInstitutionById(institutionId);
         try {
-            patientService.recoverPatient(institution, patientId);
+            patientService.restorePatient(institution, patientId);
             log.info("ADMIN [{}] patient Id {} restored", institution.getName(), patientId);
-            return ResponseEntity.ok(new ErrorResponseDto("successfully recovered deleted patient"));
+            return ResponseEntity.ok(new ErrorResponseDto("successfully restored deleted patient data"));
         } catch (Exception ex) {
             log.error("ADMIN [{}] patient Id {} restored failed", institution.getName(), patientId, ex);
             return ResponseEntity.internalServerError().body(new ErrorResponseDto(ex));
@@ -196,7 +195,6 @@ public class AdminInstitutionController {
             @Range(max=1)
             @RequestParam(required = false) Integer linkStatus,
             Authentication authentication) {
-        String username = authentication.getName();
         AiResult status = null;
         if (aiResultStr != null) {
             status = AiResult.fromLabel(aiResultStr);
@@ -212,7 +210,7 @@ public class AdminInstitutionController {
             } else {
                 institutionName = "ALL";
             }
-            Object reportSimpleResponseDtos = reportsService.getReportsByInstitutionAndDateRange(institution, reportsListRequestDto, pageable);
+            var reportSimpleResponseDtos = reportsService.getReportsByInstitutionAndDateRange(institution, reportsListRequestDto, pageable);
             log.info("ADMIN [{}] reports list retrieved successfully", institutionName);
             if (pageable.isPaged()) {
                 return ResponseEntity.ok(new OffsetPaginationResult<>((Page<ReportSimpleResponseDto>)reportSimpleResponseDtos));

@@ -9,6 +9,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.cataract.web.application.service.PatientService;
 import org.cataract.web.application.service.UserService;
 import org.cataract.web.domain.Institution;
+import org.cataract.web.domain.exception.PatientNotFoundException;
+import org.cataract.web.presentation.dto.ResponseDto;
 import org.cataract.web.presentation.dto.requests.CreatePatientRequestDto;
 import org.cataract.web.presentation.dto.requests.PatientListRequestDto;
 import org.cataract.web.presentation.dto.requests.UpdatePatientRequestDto;
@@ -22,6 +24,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -84,7 +87,7 @@ public class PatientController {
         log.info("[{}] Received request to get patient list {} with query {}", institution.getName(), patientListRequestDto, query);
         try {
             Pageable pageable = (page != null && size != null) ? Pageable.ofSize(size).withPage(page) : Pageable.unpaged();
-            Object patientResponseDtoList = patientService.getPatientsByInstitution(institution, patientListRequestDto, pageable);
+            var patientResponseDtoList = patientService.getPatientsByInstitution(institution, patientListRequestDto, pageable);
             log.info("[{}] patient list {} retrieval success", institution.getName(), patientListRequestDto);
             if (pageable.isPaged()) {
                 return ResponseEntity.ok(new OffsetPaginationResult<>((Page<PatientResponseDto>)patientResponseDtoList));
@@ -179,14 +182,44 @@ public class PatientController {
     }
 
     @PutMapping("/{patientId}")
-    public ResponseEntity<PatientResponseDto> updatePatient(Authentication authentication, @PathVariable Integer patientId,
+    public ResponseEntity<ResponseDto> updatePatient(Authentication authentication, @PathVariable Integer patientId,
                                                             @RequestBody UpdatePatientRequestDto updatePatientRequestDto) {
         String username = authentication.getName();
         Institution institution = userService.getInstitution(username);
+        try {
         log.info("[{}] patientId: {} Request to update patient info", institution.getName(), patientId);
         PatientResponseDto patientResponseDto = patientService.updatePatient(institution, patientId, updatePatientRequestDto);
         log.info("[{}] patientId: {} updated successfully", institution.getName(), patientId);
         return ResponseEntity.ok(patientResponseDto);
+        } catch (PatientNotFoundException ex) {
+            log.error("[{}] patientId: {} update failed because patient does not exist or not deleted",
+                institution.getName(), patientId, ex);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new ErrorResponseDto(new PatientNotFoundException("patient not found or not deleted")));
+        } catch (Exception ex) {
+            log.error("[{}] patientId: {} update failed due to internal server error", institution.getName(), patientId, ex);
+            return ResponseEntity.internalServerError().body(new ErrorResponseDto(ex.getMessage()));
+        }
+    }
+
+    @PatchMapping("/{patientId}")
+    public ResponseEntity<ResponseDto> restorePatient(Authentication authentication, @PathVariable Integer patientId) {
+        String username = authentication.getName();
+        Institution institution = userService.getInstitution(username);
+        log.info("[{}] patientId: {} Request to restore deleted patient info", institution.getName(), patientId);
+        try {
+            PatientResponseDto patientResponseDto = patientService.restorePatient(institution, patientId);
+            log.info("[{}] patientId: {} restored successfully", institution.getName(), patientId);
+            return ResponseEntity.ok(patientResponseDto);
+        } catch (PatientNotFoundException ex) {
+            log.error("[{}] patientId: {} restored failed because patient does not exist or not deleted",
+                    institution.getName(), patientId, ex);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new ErrorResponseDto(new PatientNotFoundException("patient not found or not deleted")));
+        } catch (Exception ex) {
+            log.error("[{}] patientId: {} restored failed due to internal server error", institution.getName(), patientId, ex);
+            return ResponseEntity.internalServerError().body(new ErrorResponseDto(ex.getMessage()));
+        }
     }
 
     @DeleteMapping("/{patientId}")
@@ -195,6 +228,6 @@ public class PatientController {
         Institution institution = userService.getInstitution(username);
         log.info("[{}] patientId: {} Request to delete ", institution.getName(), patientId);
         patientService.deletePatient(institution, patientId);
-        return ResponseEntity.ok(new ErrorResponseDto("patient successfully deleted"));
+        return ResponseEntity.ok(new ErrorResponseDto("patient successfully deleted or not found"));
     }
 }

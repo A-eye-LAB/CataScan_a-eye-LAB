@@ -11,13 +11,13 @@ import org.cataract.web.domain.exception.PatientNotFoundException;
 import org.cataract.web.domain.exception.ReportNotFoundException;
 import org.cataract.web.infra.PatientRepository;
 import org.cataract.web.infra.ReportsRepository;
-import org.cataract.web.presentation.dto.responses.ReportCommentResponseDto;
 import org.cataract.web.presentation.dto.requests.*;
 import org.cataract.web.presentation.dto.responses.*;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.*;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -66,6 +66,7 @@ public class ReportsServiceImpl implements ReportsService {
     }
 
 
+    @Transactional
     public ReportResponseDto saveReportfromApp(Institution institution, ReportRequestDto reportRequestDto) throws Exception {
 
         String uuid = UUID.randomUUID().toString();
@@ -87,7 +88,7 @@ public class ReportsServiceImpl implements ReportsService {
         }
         reports.setPatient(null);
         reports.setInstitution(institution);
-        reports = reportsRepository.save(reports);
+        reports = reportsRepository.saveAndFlush(reports);
         log.debug("[{}] saved eye image {} from app", institution.getName(), reports.getImageIdentifier());
         return ReportResponseDto.toDto(reports);
     }
@@ -96,6 +97,7 @@ public class ReportsServiceImpl implements ReportsService {
         return filename.substring(filename.lastIndexOf("."));
     }
 
+    @Transactional
     public ReportLinkResponseDto linkReportWithPatient(Institution institution, long reportId, int patientId) {
         Reports reports = reportsRepository.findById(reportId)
                 .orElseThrow(ReportNotFoundException::new);
@@ -110,6 +112,7 @@ public class ReportsServiceImpl implements ReportsService {
         return new ReportLinkResponseDto(patient, reports);
     }
 
+    @Transactional
     public ReportLinkResponseDto unlinkReportWithPatient(Institution institution, Long reportId) {
         Reports reports = reportsRepository.findById(reportId)
                 .orElseThrow(ReportNotFoundException::new);
@@ -122,6 +125,7 @@ public class ReportsServiceImpl implements ReportsService {
     }
 
     @Override
+    @Transactional
     public ReportCommentResponseDto updateReportComments(Institution institution, Long reportId, ReportCommentRequestDto reportCommentRequestDto) {
         Reports report = reportsRepository.findById(reportId).orElseThrow(ReportNotFoundException::new);
         report.setComments(reportCommentRequestDto.getComments());
@@ -129,7 +133,9 @@ public class ReportsServiceImpl implements ReportsService {
         return ReportCommentResponseDto.toDto(reportId, reportCommentRequestDto.getComments());
     }
 
+    
     @Override
+    @Transactional(readOnly = true)
     public ReportCommentResponseDto getReportComments(Institution institution, Long reportId) {
         String reportComment = reportsRepository.findCommentsById(reportId);
         return ReportCommentResponseDto.toDto(reportId, reportComment);
@@ -178,6 +184,7 @@ public class ReportsServiceImpl implements ReportsService {
 
     }
 
+    @Transactional(readOnly = true)
     public Object getReportsByPatient(Institution institution, int patientId,
                                       ReportsListRequestDto reportsListRequestDto, Pageable pageable) {
 
@@ -203,6 +210,7 @@ public class ReportsServiceImpl implements ReportsService {
         }
     }
 
+    @Transactional(readOnly = true)
     public List<Reports> getReportListByPatient(Patient patient) {
 
         List<Reports> reportsList = reportsRepository.findByPatient(patient);
@@ -210,7 +218,7 @@ public class ReportsServiceImpl implements ReportsService {
         return reportsList;
     }
 
-
+    @Transactional(readOnly = true)
     public List<PatientReportResponseDto> getRecentReportByPatientIdAndInstitution(Institution institution, int patientId, int numOfReports) {
 
         Patient patient = patientRepository.findByPatientIdAndInstitutionAndDataStatusGreaterThanEqual(patientId, institution, 1)
@@ -226,12 +234,14 @@ public class ReportsServiceImpl implements ReportsService {
 
     }
 
+    @Transactional(readOnly = true)
     public ReportDetailResponseDto getReportById(Institution institution, long reportId) {
 
         Reports reports = getReportEntityById(reportId, institution);
         return ReportDetailResponseDto.toDto(reports);
     }
 
+    @Transactional(readOnly = true)
     public Object getCandidatePatientsByReportId(Institution institution, long reportId,
                                                                    PatientListRequestDto patientListRequestDto, Pageable pageable) {
 
@@ -277,6 +287,7 @@ public class ReportsServiceImpl implements ReportsService {
     }
 
     @Override
+    @Transactional
     public void deleteReportById(Institution institution, long reportId) {
         Reports report = getReportEntityById(reportId, institution);
         imageService.deleteFile(report.getLImagePath());
@@ -285,6 +296,7 @@ public class ReportsServiceImpl implements ReportsService {
     }
 
     @Override
+    @Transactional
     public ReportDetailResponseDto updateReport(Institution institution, long reportId, UpdateReportRequestDto updateReportRequestDto) {
         Reports report = getReportEntityById(reportId, institution);
         if (updateReportRequestDto.getLeftEyeDiagnosis() != null)
@@ -301,6 +313,7 @@ public class ReportsServiceImpl implements ReportsService {
         return ReportDetailResponseDto.toDto(report);
     }
 
+    @Transactional(readOnly = true)
     private Reports getReportEntityById(long reportId, Institution institution) {
 
         Reports reports = reportsRepository.findById(reportId).orElseThrow(ReportNotFoundException::new);
@@ -311,6 +324,7 @@ public class ReportsServiceImpl implements ReportsService {
         return reports;
     }
 
+    @Transactional(readOnly = true)
     public long getUnlinkedReportCount(Institution institution) {
         return reportsRepository.countUnlinkedReports(institution.getInstitutionId());
     }

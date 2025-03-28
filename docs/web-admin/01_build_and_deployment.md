@@ -65,13 +65,51 @@ docker-compose up --build -d
 - (추가 테스트 후 확인된 내용으로 작성할 예정입니다.)
 
 #### 기본 패키지 설치 및 ec2-user 권한 확인
+```
+# 도커 설치 및 권한 설정
+sh 01.install_docker.sh
+logout
+```
+ssh 로그아웃 이후 다시 로그인 후
+```
+# 도커 이미지 빌드 후 로컬 레지스트리에 도커 이미지 업로드
+sh 02.build_docker_image.sh
+```
 
+```
+# 쿠버네티스 k3s 설치 및 네임스페이스 catascan 구동
+sh 03.install_k3s.sh
+```
 
+```
+# 각종 암호 설정
+# DB 사용자 정보, AWS 사용자 엑세스 키, 앱 토큰 암호키(32글자) 설정 예시
+kubectl create secret generic app-secrets \
+  --from-literal=db-username='postgres' \
+  --from-literal=db-password='secretPassword' \
+  --from-literal=aws-access-key='AKIAGOJANGIONARGOPVON' \
+  --from-literal=aws-secret-key='B3d4*1NA3RiWXBR@2VgzO%!f#!^#H0%o0N!R0bOH' \
+  --from-literal=app-token-secret='n0C029EbHL#6X^b^6z3U8^4$o2#J9h2M' \
+  --namespace catascan
+```
+```
+# 그라파나 관련 암호설정 예시
+kubectl create secret generic grafana-secrets \
+  --from-literal=admin-password='password1' \
+  --namespace catascan
+```
 #### 쿠버네티스를 통한 API 서버 구동. 
-
+```
+# k3s 내에 있는 각종 파일을 통한 쿠버네티스 구동( 구동 전 yaml 파일 확인)
+# 서버 규모에 따라서 프로메테우스나 그라파나를 운영하는 대신 CloudWatch 활용 모니터링 고려
+# 우선 k3s/configmap.yaml, prometheus-config.yaml 확인 후 설정 내용 맞는지 확인
+sh 04.kube_deploy.sh
+```
 
 #### API 서버 확인
-
+```
+curl http://localhost/management/health
+```
 
 
 

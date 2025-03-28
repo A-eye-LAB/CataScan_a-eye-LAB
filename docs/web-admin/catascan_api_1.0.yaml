@@ -2,10 +2,8 @@ openapi: "3.0.3"
 info:
   title: Catascan Web Admin API
   description: API for Catascan Web Admin
-  version: 1.0
+  version: 1.0.1
 servers:
-  - url: http://ec2-3-35-207-200.ap-northeast-2.compute.amazonaws.com:8080
-    description: Production server
   - url: http://localhost:8080
     description: Localhost server
       
@@ -14,6 +12,8 @@ paths:
     get:
       summary: GET admin/user/{id}
       description: Retrieve details of a specific User
+      security:
+        - PasetoAuth: ["bearer"]
       operationId: getUser
       parameters:
         - name: id
@@ -45,7 +45,7 @@ paths:
       description: Update user details such as name, email, role, etc.
       operationId: updateUser
       security:
-        - PasetoAuth: []
+        - PasetoAuth: ["bearer"]
       parameters:
         - name: id
           in: path
@@ -77,6 +77,8 @@ paths:
     delete:
       summary: DELETE admin/user/{id}
       description: Deletes user with id
+      security: 
+        -  PasetoAuth: ["bearer"]
       operationId: deleteUser
       parameters:
         - name: id
@@ -132,6 +134,8 @@ paths:
     post:
       summary: "POST admin/user"
       operationId: "createUser"
+      security: 
+        -  PasetoAuth: ["bearer"]
       requestBody:
         content:
           application/json:
@@ -188,6 +192,8 @@ paths:
     get:
       summary: "GET admin/user-list"
       operationId: "getUserList"
+      security: 
+        -  PasetoAuth: ["bearer"]
       parameters:
         - name: "q"
           in: "query"
@@ -306,6 +312,8 @@ paths:
     patch:
       summary: "PATCH user"
       operationId: "updateUserData"
+      security: 
+        -  PasetoAuth: ["bearer"]
       requestBody:
         content:
           application/json:
@@ -361,6 +369,8 @@ paths:
     get:
       summary: "GET user"
       operationId: "getUserData"
+      security:
+        - PasetoAuth: ["bearer"]
       description: "get current user data"
       responses:
         "200":
@@ -373,6 +383,8 @@ paths:
     get:
       summary: "GET admin/institutions"
       operationId: "getInstitutionList"
+      security:
+        - PasetoAuth: ["bearer"]
       description: "retrieve a list of institutions"
       parameters:
         - name: "page"
@@ -431,6 +443,8 @@ paths:
     get:
       summary: "GET admin/patient-list"
       operationId: "getPatientListByAdmin"
+      security:
+        - PasetoAuth: ["bearer"]
       parameters:
         - name: "q"
           in: "query"
@@ -573,6 +587,8 @@ paths:
     get:
       summary: "GET admin/institution/{institutionId}/patients/{patientId}"
       operationId: "getPatientByAdmin"
+      security:
+        - PasetoAuth: ["bearer"]
       parameters:
         - name: "institutionId"
           in: "path"
@@ -603,6 +619,8 @@ paths:
     delete:
       summary: "DELETE admin/institution/{institutionId}/patients/{patientId}"
       operationId: "deletePatientPermanently"
+      security:
+        - PasetoAuth: ["bearer"]
       parameters:
         - name: "institutionId"
           in: "path"
@@ -633,7 +651,10 @@ paths:
                   message: "patient not found"
     put:
       summary: "PUT admin/institution/{institutionId}/patients/{patientId}"
-      operationId: "recoverPatient"
+      operationId: "restorePatient"
+      security:
+        - PasetoAuth: ["bearer"]
+      description: "restoring a patient data that the institution user deleted"
       parameters:
         - name: "institutionId"
           in: "path"
@@ -654,7 +675,7 @@ paths:
             application/json:
               schema:
                 example:
-                  message: "patient successfully recovered"
+                  message: "patient data successfully restored"
 
         "404":
           description: "Patient Not Found"
@@ -667,6 +688,8 @@ paths:
     get:
       summary: "GET admin/report-list"
       operationId: "getReportListFromDateRangeAdmin"
+      security:
+        - PasetoAuth: ["bearer"]
       parameters:
         - name: "q"
           in: "query"
@@ -780,6 +803,8 @@ paths:
     get:
       summary: "GET admin/institution/{institutionId}/reports/{reportId}"
       operationId: "getDetailReport"
+      security:
+        - PasetoAuth: ["bearer"]
       parameters:
         - name: "institutionId"
           in: "path"
@@ -810,6 +835,8 @@ paths:
     delete:
       summary: "DELETE admin/institution/{institutionId}/reports/{reportId}"
       operationId: "deleteReport"
+      security:
+        - PasetoAuth: ["bearer"]
       parameters:
         - name: "institutionId"
           in: "path"
@@ -842,6 +869,8 @@ paths:
     put:
       summary: "PUT patients/{patientId}/profile"
       operationId: "updatePatientProfile"
+      security:
+        - PasetoAuth: ["bearer"]
       parameters:
         - name: "patientId"
           in: path
@@ -872,6 +901,8 @@ paths:
     post:
       summary: "POST patients/{patientId}/profile"
       operationId: "createPatientProfile"
+      security:
+        - PasetoAuth: ["bearer"]
       parameters:
         - name: "patientId"
           in: path
@@ -895,6 +926,8 @@ paths:
     delete:
       summary: "DELETE patients/{patientId}/profile"
       operationId: "deletePatientProfile"
+      security:
+        - PasetoAuth: ["bearer"]
       parameters:
         - name: "patientId"
           in: path
@@ -913,6 +946,8 @@ paths:
     get:
       summary: "GET patients/{patientId}/profile"
       operationId: "getPatientProfiles"
+      security:
+        - PasetoAuth: ["bearer"]
       parameters:
         - name: "patientId"
           in: path
@@ -931,6 +966,8 @@ paths:
     put:
       summary: "PUT patients/{patientId}"
       operationId: "updatePatient"
+      security:
+        - PasetoAuth: ["bearer"]
       parameters:
         - name: "patientId"
           in: path
@@ -958,9 +995,37 @@ paths:
               schema:
                 example:
                   message: "patient not found or part of your institution"
+    patch:
+      summary: "PATCH patients/{patientId}"
+      operationId: "restorePatientByUser"
+      security:
+        - PasetoAuth: ["bearer"]
+      parameters:
+        - name: "patientId"
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PatientResponseDto"
+        "404":
+          description: "Patient Not Found"
+          content:
+            application/json:
+              schema:
+                example:
+                  message: "patient not found or part of your institution or not deleted"                  
     delete:
       summary: "DELETE patients/{patientId}"
       operationId: "deletePatient"
+      security:
+        - PasetoAuth: ["bearer"]
       parameters:
         - name: "patientId"
           in: path
@@ -986,6 +1051,8 @@ paths:
     get:
       summary: "GET patients/{patientId}"
       operationId: "getPatient"
+      security:
+        - PasetoAuth: ["bearer"]
       parameters:
         - name: "patientId"
           in: path
@@ -1011,6 +1078,8 @@ paths:
     post:
       summary: "POST patients"
       operationId: "createPatient"
+      security:
+        - PasetoAuth: ["bearer"]
       requestBody:
         content:
           application/json:
@@ -1035,6 +1104,8 @@ paths:
     get:
       summary: "GET patients"
       operationId: "getPatientList"
+      security:
+        - PasetoAuth: ["bearer"]
       parameters:
         - name: "q"
           in: "query"
@@ -1171,6 +1242,8 @@ paths:
     get:
       summary: "GET patients/export"
       operationId: "getPatientListAsCsv"
+      security:
+        - PasetoAuth: ["bearer"]
       parameters:
         - name: "q"
           in: "query"
@@ -1276,6 +1349,8 @@ paths:
     get:
       summary: "GET patients/data/{patientId}"
       operationId: "getFullPatientData"
+      security:
+        - PasetoAuth: ["bearer"]
       parameters:
         - name: "patientId"
           in: path
@@ -1301,6 +1376,8 @@ paths:
     put:
       summary: "PUT reports/{reportId}"
       operationId: "updateReportById"
+      security:
+        - PasetoAuth: ["bearer"]
       parameters:
         - name: "reportId"
           in: path
@@ -1331,6 +1408,8 @@ paths:
     delete:
       summary: "DELETE reports/{reportId}"
       operationId: "deleteReportById"
+      security:
+        - PasetoAuth: ["bearer"]
       parameters:
         - name: "reportId"
           in: path
@@ -1357,6 +1436,8 @@ paths:
     get:
       summary: "GET reports/{reportId}"
       operationId: "getReportsById"
+      security:
+        - PasetoAuth: ["bearer"]
       parameters:
         - name: "reportId"
           in: path
@@ -1382,6 +1463,8 @@ paths:
     post:
       summary: "POST reports"
       operationId: "uploadReport"
+      security:
+        - PasetoAuth: ["bearer"]
       requestBody:
         content:
           multipart/form-data:
@@ -1401,7 +1484,7 @@ paths:
                   type: string
                   description: "The ID associated with the images in the form of name=gender(in 'm', 'f', or 'o')"
                   example: "john doe=m"
-                  required: true
+                  required: []
                 leftAiResult:
                   type: string
                   description: "AI result for the left eye image (only accepts 'lowRisk', 'requiresAttention', 'ungradable')"
@@ -1423,6 +1506,8 @@ paths:
     get:
       summary: "GET reports"
       operationId: "getReportListFromDateRange"
+      security:
+        - PasetoAuth: ["bearer"]
       parameters:
         - name: "q"
           in: "query"
@@ -1519,6 +1604,8 @@ paths:
     post:
       summary: "POST reports/{reportId}/link-patient/{patientId}"
       operationId: "linkReportWithPatient"
+      security:
+        - PasetoAuth: ["bearer"]
       parameters:
         - name: "reportId"
           in: path
@@ -1550,6 +1637,8 @@ paths:
     post:
       summary: "POST reports/{reportId}/unlink-patient"
       operationId: "unlinkReportWithPatient"
+      security:
+        - PasetoAuth: ["bearer"]
       parameters:
         - name: "reportId"
           in: path
@@ -1572,6 +1661,8 @@ paths:
     get:
       summary: "GET reports/patient/{patientId}"
       operationId: "getReportByPatient"
+      security:
+        - PasetoAuth: ["bearer"]
       parameters:
         - name: "patientId"
           in: path
@@ -1650,6 +1741,8 @@ paths:
     get:
       summary: "GET reports/{reportId}/candidates-list"
       operationId: "getReportCandidatePatients"
+      security:
+        - PasetoAuth: ["bearer"]
       parameters:
         - name: "reportId"
           in: path
@@ -1754,6 +1847,8 @@ paths:
     get:
       summary: "GET reports/unlinked-num"
       operationId: "getUnlinkedReportsNum"
+      security:
+        - PasetoAuth: ["bearer"]
       responses:
         "200":
           description: "OK"
@@ -1767,6 +1862,8 @@ paths:
     get:
       summary: "GET reports/{reportId}/comments"
       operationId: "getReportComments"
+      security:
+        - PasetoAuth: ["bearer"]
       parameters:
         - name: "reportId"
           in: "path"
@@ -1784,6 +1881,8 @@ paths:
     put:
       summary: "PUT reports/{reportId}/comments"
       operationId: "putReportComments"
+      security:
+        - PasetoAuth: ["bearer"]
       parameters:
         - name: "reportId"
           in: "path"
@@ -1846,6 +1945,8 @@ paths:
     post:
       summary: "POST auth/logout"
       operationId: "logout"
+      security:
+        - PasetoAuth: ["bearer"]
       parameters:
         - name: "Authorization"
           in: "header"
@@ -1873,6 +1974,8 @@ paths:
     post:
       summary: "POST auth/refresh"
       operationId: "refreshAccessToken"
+      security:
+        - PasetoAuth: ["bearer"]
       requestBody:
         content:
           application/json:

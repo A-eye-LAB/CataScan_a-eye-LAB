@@ -12,10 +12,9 @@
 
 
 ## Back-End
-- API 문서는 기본적으로 아래 문서에서 확인할 수 있는 것처럼 OpenAPI Specification(OAS) 형태로 명시되어 있습니다. 
-  [Catascan-API문서](catascan_api_1.0.yaml)
-- `/auth/login`을 제외한 모든 API는 기본적으로 `Paseto`토큰을 사용하여 인증을 확인합니다. 너무 많은 시도를 할때 Rate Limiting 으로 제한하고 있습니다.  
-- `/admin`으로 시작하는 API는 `admin`유저만 접근가능합니다. 
+- API 문서는 기본적으로 [Catascan-API문서](catascan_api_1.0.yaml)에서 확인할 수 있는 것처럼 OpenAPI Specification(OAS) 형태로 명시되어 있습니다. 
+- `/auth/login`을 제외한 모든 API는 기본적으로 `Paseto`토큰을 사용하여 인증을 확인합니다. 과도한 로그인 시도는 Rate Limiting 으로 제한하고 있습니다.  
+- `/admin`으로 시작하는 엔드포인트는 `admin`유저만 접근가능합니다. 
 
 
 [처음으로](../overview.md) |

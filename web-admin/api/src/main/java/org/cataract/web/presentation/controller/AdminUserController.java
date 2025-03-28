@@ -134,11 +134,11 @@ public class AdminUserController {
                     new UserListRequestDto(query, startDate, endDate, page, size, sortBy, sortDir);
             log.info("ADMIN [{}] Received request to get user list: {} with the following query {}", username, userListRequestDto, query);
             Pageable pageable = (page != null && size != null) ? Pageable.ofSize(size).withPage(page) : Pageable.unpaged();
-            Object userResponseDtoList = userService.getUserList(userListRequestDto, pageable);
+            var userResponseDtoList = userService.getUserList(userListRequestDto, pageable);
             log.info("ADMIN retrieved user list successfully");
-            if (pageable.isUnpaged())
-                return ResponseEntity.ok(userResponseDtoList);
-            return ResponseEntity.ok(new OffsetPaginationResult<>((Page<UserResponseDto>) userResponseDtoList));
+            if (pageable.isPaged())
+                return ResponseEntity.ok(new OffsetPaginationResult<>((Page<UserResponseDto>) userResponseDtoList));
+            return ResponseEntity.ok(userResponseDtoList);
 
         } catch (ValidationException e) {
             log.error("ADMIN failed to retrieve user list because of validation", e);

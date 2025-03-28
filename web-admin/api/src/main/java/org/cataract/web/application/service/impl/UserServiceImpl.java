@@ -81,6 +81,7 @@ public class UserServiceImpl implements UserService {
 
     }
 
+    @Transactional(readOnly = true)
     public Object getUserList(UserListRequestDto userListRequestDto, Pageable pageable) {
 
         Specification<User> spec = Specification.where(null);
@@ -120,6 +121,7 @@ public class UserServiceImpl implements UserService {
 
     }
 
+    @Transactional(readOnly = true)
     public UserResponseDto getUser(Long id) {
 
         User user = userRepository.findById(id).orElseThrow(UserNotFoundException::new);
@@ -178,6 +180,7 @@ public class UserServiceImpl implements UserService {
 
     }
 
+    @Transactional(readOnly = true)
     public UserResponseDto getUserByUsername(String username) {
         User user = userRepository.findByUsernameAndRoleNot(username, Role.DELETED)
                 .orElseThrow(UserNotFoundException::new);
@@ -209,6 +212,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Institution getInstitution(String username) {
         User user = userRepository.findByUsernameAndRoleNot(username, Role.DELETED)
                 .orElseThrow(UserNotFoundException::new);

@@ -11,4 +11,3 @@ data:
         metrics_path: '/management/prometheus'
         static_configs:
           - targets: ['catascan-api-service.default.svc.cluster.local:8080']
-

@@ -164,7 +164,7 @@ public class ReportsController {
         Pageable pageable = (page != null && size != null) ? Pageable.ofSize(size).withPage(page) : Pageable.unpaged();
         log.info("[{}] Received request to retrieve report list by {}", institution.getName(), reportsListRequestDto);
         try {
-            Object reportSimpleResponseDtoList =
+            var reportSimpleResponseDtoList =
                     reportsService.getReportsByInstitutionAndDateRange(institution, reportsListRequestDto, pageable);
             log.info("[{}] reports list retrieved successfully", institution.getName());
             return ResponseEntity.ok(reportSimpleResponseDtoList);
@@ -218,7 +218,7 @@ public class ReportsController {
         log.info("[{}] patientId: {} Received request to retrieve report", institution.getName(), patientId);
         try {
             Pageable pageable = (page != null && size != null) ? Pageable.ofSize(size).withPage(page) : Pageable.unpaged();
-            Object reportDetailResponseDtos = reportsService.getReportsByPatient(institution, patientId, reportsListRequestDto, pageable);
+            var reportDetailResponseDtos = reportsService.getReportsByPatient(institution, patientId, reportsListRequestDto, pageable);
             log.info("[{}] patientId: {} report list retrieved successfully", institution.getName(), patientId);
             if (pageable.isPaged()) {
                 return ResponseEntity.ok(new OffsetPaginationResult<>((Page<ReportDetailResponseDto>)reportDetailResponseDtos));
@@ -315,7 +315,7 @@ public class ReportsController {
                     new PatientListRequestDto(query, startDate, endDate, page, size,sortBy, sortDir);
             Pageable pageable = (page != null && size != null) ? Pageable.ofSize(size).withPage(page) : Pageable.unpaged();
 
-            Object patientResponseDtos = reportsService.getCandidatePatientsByReportId(
+            var patientResponseDtos = reportsService.getCandidatePatientsByReportId(
                             institution, reportId, patientListRequestDto, pageable);
             if (pageable.isPaged()) {
                 log.info("[{}] reportId: {} candidate patients retrieved successfully", institution.getName(), reportId);

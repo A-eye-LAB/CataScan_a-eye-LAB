@@ -25,7 +25,7 @@ public interface PatientService {
 
     ByteArrayInputStream getPatientsListByUserInstitutionAsCsv(Institution institution, PatientListRequestDto patientListRequestDto);
 
-    PatientResponseDto recoverPatient(Institution institution, Integer patientId);
+    PatientResponseDto restorePatient(Institution institution, Integer patientId);
 
     void deletePatientAndDataPermanently(Institution institution, Integer patientId);
 

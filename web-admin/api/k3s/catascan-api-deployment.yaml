@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: catascan-api
-          image: catascan-api:1.0.0
+          image: localhost:5000/catascan-api:1.0.0
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8080
@@ -39,6 +39,31 @@ spec:
                 configMapKeyRef:
                   name: api-config
                   key: APP_IMAGE_BUCKET_REGION
+            - name: APP_TOKEN_EXPIRE_HOURS
+              valueFrom:
+                configMapKeyRef:
+                  name: api-config
+                  key: APP_TOKEN_EXPIRE_HOURS
+            - name: APP_ADMIN_EMAIL
+              valueFrom:
+                configMapKeyRef:
+                  name: api-config
+                  key: APP_ADMIN_EMAIL
+            - name: APP_ADMIN_INSTITUTION
+              valueFrom:
+                configMapKeyRef:
+                  name: api-config
+                  key: APP_ADMIN_INSTITUTION
+            - name: APP_PATIENT_RETENTION_DAYS
+              valueFrom:
+                configMapKeyRef:
+                  name: api-config
+                  key: APP_PATIENT_RETENTION_DAYS
+            - name: APP_PATIENT_RETENTION_CRON
+              valueFrom:
+                configMapKeyRef:
+                  name: api-config
+                  key: APP_PATIENT_RETENTION_CRON
             - name: SPRING_DATASOURCE_USERNAME
               valueFrom:
                 secretKeyRef:
@@ -59,6 +84,12 @@ spec:
                 secretKeyRef:
                   name: app-secrets
                   key: aws-secret-key
+            - name: APP_TOKEN_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: app-token-secret
+          
           livenessProbe:
             httpGet:
               path: /management/health
