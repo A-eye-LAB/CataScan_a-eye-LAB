@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface SessionTokenRepository extends JpaRepository<SessionToken, Long> {
+public interface SessionTokenRepository extends JpaRepository<SessionToken, String> {
     Optional<SessionToken> findByTokenValue(String tokenValue);
 
     List<SessionToken> findAllByUser(User user);

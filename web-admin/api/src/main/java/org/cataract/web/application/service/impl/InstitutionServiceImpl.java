@@ -27,10 +27,11 @@ public class InstitutionServiceImpl implements InstitutionService {
     @Override
     public Object getAllInstitutions(Pageable pageable) {
         log.debug("retrieving all institutions by list");
-        if (pageable.isUnpaged())
-            return institutionRepository.findAll().stream().map(InstitutionResponseDto::toDto).collect(Collectors.toList());
-        else
+        if (pageable.isPaged())
             return institutionRepository.findAll(pageable).map(InstitutionResponseDto::toDto);
+        else
+            return institutionRepository.findAll().stream().map(InstitutionResponseDto::toDto).collect(Collectors.toList());
+            
 
     }
 

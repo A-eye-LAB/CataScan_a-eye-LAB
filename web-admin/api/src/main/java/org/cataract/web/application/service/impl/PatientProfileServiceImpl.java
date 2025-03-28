@@ -14,6 +14,7 @@ import org.cataract.web.presentation.dto.requests.CreateProfileRequestDto;
 import org.cataract.web.presentation.dto.requests.UpdateProfileRequestDto;
 import org.cataract.web.presentation.dto.responses.PatientProfileResponseDto;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
@@ -25,6 +26,7 @@ public class PatientProfileServiceImpl implements PatientProfileService {
     private final PatientProfileRepository patientProfileRepository;
     private final PatientRepository patientRepository;
 
+    @Transactional
     public PatientProfileResponseDto updateProfile(Institution institution, int patientId, UpdateProfileRequestDto updateProfileRequestDto) {
 
         Patient patient = patientRepository.findByPatientIdAndInstitutionAndDataStatusGreaterThanEqual(patientId, institution, 1)
@@ -41,6 +43,7 @@ public class PatientProfileServiceImpl implements PatientProfileService {
         return PatientProfileResponseDto.toDto(updatedPatientProfiles);
     }
 
+    @Transactional
     public void deletePatientProfile(Institution institution, int patientId) {
 
         Patient patient = patientRepository.findByPatientIdAndInstitutionAndDataStatusGreaterThanEqual(patientId, institution, 1)
@@ -63,7 +66,8 @@ public class PatientProfileServiceImpl implements PatientProfileService {
         log.info("found Patient Profile for patientId : {}, profileId : {}", patientId, patientProfiles.getProfileId());
         return PatientProfileResponseDto.toDto(patientProfiles);
     }
-
+    
+    @Transactional
     public PatientProfileResponseDto createPatientProfile(Institution institution, int patientId, CreateProfileRequestDto createProfileRequestDto) {
 
         Patient patient = patientRepository.findByPatientIdAndInstitutionAndDataStatusGreaterThanEqual(patientId, institution, 1)

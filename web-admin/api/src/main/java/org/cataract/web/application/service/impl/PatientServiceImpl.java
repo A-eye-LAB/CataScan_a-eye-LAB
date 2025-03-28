@@ -50,6 +50,7 @@ public class PatientServiceImpl implements PatientService {
     private final ReportsService reportsService;
     private final ImageService imageService;
 
+    @Transactional
     public PatientResponseDto createPatient(Institution institution, CreatePatientRequestDto createPatientRequestDto) {
 
         Optional<Integer> patientId = patientRepository.findMaxByInstitutionOrderByPatientIdDesc(institution);
@@ -65,6 +66,7 @@ public class PatientServiceImpl implements PatientService {
         return PatientResponseDto.toDto(patient);
     }
 
+    @Transactional
     public PatientResponseDto updatePatient(Institution institution, Integer patientId, UpdatePatientRequestDto updatePatientRequestDto) {
 ;
 
@@ -82,6 +84,7 @@ public class PatientServiceImpl implements PatientService {
         return PatientResponseDto.toDto(patientRepository.save(existingPatient));
     }
 
+    @Transactional
     public void deletePatient(Institution institution, Integer patientId) {
 
         Patient patient = patientRepository.findByPatientIdAndInstitutionAndDataStatusGreaterThanEqual(patientId, institution, 1)
@@ -91,6 +94,7 @@ public class PatientServiceImpl implements PatientService {
         patientRepository.save(patient);
     }
 
+    @Transactional
     public void deletePatientAndDataPermanently(Institution institution, Integer patientId) {
 
         Patient patient = patientRepository.findByPatientIdAndInstitutionAndDataStatusGreaterThanEqual(patientId, institution, 0)
@@ -174,6 +178,7 @@ public class PatientServiceImpl implements PatientService {
         return FullPatientDataDto.toDto(patient, patientProfileResponseDto, patientReports);
     }
 
+    @Transactional(readOnly = true)
     public PatientResponseDto getPatient(Institution institution, Integer patientId) {
 ;
 
@@ -183,6 +188,7 @@ public class PatientServiceImpl implements PatientService {
         return PatientResponseDto.toDto(patient);
     }
 
+    @Transactional(readOnly = true)
     private List<PatientExportResponseDto> getPatientsListByUserInstitution(Institution institution, PatientListRequestDto patientListRequestDto) {
 ;
 
@@ -211,7 +217,8 @@ public class PatientServiceImpl implements PatientService {
     }
 
     @Override
-    public PatientResponseDto recoverPatient(Institution institution, Integer patientId) {
+    @Transactional
+    public PatientResponseDto restorePatient(Institution institution, Integer patientId) {
         Patient patient = patientRepository.findByPatientIdAndInstitutionAndDataStatusEquals(patientId, institution, 0)
                 .orElseThrow(PatientNotFoundException::new);
         patient.setDataStatus(1);

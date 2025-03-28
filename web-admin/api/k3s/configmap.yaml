@@ -7,3 +7,8 @@ data:
         SPRING_DATASOURCE_URL: "jdbc:postgresql://db-cluster.cluster-abcdefg1234.ap-northeast-2.rds.amazonaws.com:5432/postgres?allowPublicKeyRetrieval=true&useSSL=false" # RDS 클러스터 엔드포인트
         APP_IMAGE_BUCKET_NAME: "eyelab-test"  # S3 버킷명
         APP_IMAGE_BUCKET_REGION: "ap-northeast-2"  # S3 버킷 리전
+        APP_TOKEN_EXPIRE_HOURS: "12"   # 토큰 유효시간
+        APP_ADMIN_EMAIL: "cs@labsd.net"   # 어드민 이메일
+        APP_ADMIN_INSTITUTION: "LabSD"    # 어드민 기관명
+        APP_PATIENT_RETENTION_DAYS: "3000"   # 삭제 환자 데이터 보관일수
+        APP_PATIENT_RETENTION_CRON: "0 0 1 * * ?"
