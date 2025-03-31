@@ -117,3 +117,29 @@ A:
 
 
 # 화면 기능 상세
+
+## 1.로비(비로그인)
+
+| No. | Description |
+|:--------------: |:--------------:|
+| 1 | 최초 화면 - 환자 정보 입력이 없는 경우에만 이 화면을 노출합니다. 로그인된 경우(즉, 디바이스에 저장된 환자 정보가 있는 경우) 이 화면없이 [화면4]를 노출합니다.| 
+| 2 | BI 이미지 - gif 파일로 움직이는 looping 이미지 구현 예정입니다.|
+| 3 | 타이틀 텍스트 - (후순위) 텍스트 애니메이션 적용 (링크)| 
+| 4 | 진입 버튼 - (첫 방문) 사용자의 프로필정보가 없다면 [화면4-1]로 이동합니다. 프로필정보: 이름, 성별, 나이, (재방문) [화면5. 범용 메인화면]으로 이동합니다.| 
+| 5 | 센터용 버튼 - (첫 방문) 로그인 정보가 없다면 [화면2-1. 센터용 로그인]으로 이동합니다. (재방문) [화면3. 센터용 메인화면]으로 이동합니다.| 
+| 6-1 | Terms of Service 링크 - 클릭 시, 링크 ‘https://catascan.org/terms-of-service’ 로 이동 | 
+| 6-2 | Privacy Policy 링크 - 클릭 시, 링크 ‘https://catascan.org/privacy-policy’ 로 이동 | 
+
+
+## 5. 범용 메인화면
+
+| No. | Description |
+|:--------------: |:--------------:|
+| 1 | My Info 메뉴 - 클릭 시, [화면 7-1]로 이동합니다.| 
+| 2 | banner - case에 따라 메시지 노출이 바뀝니다. 검진 기록 없음 'Ready for your first eye health check? Scan now to get started!'. 위험인 경우 'Potential cataract risk detected. We recommend visiting your eye doctor'. 검출된 경우 'It is strongly advised that you visit the doctor’s office' | 
+| 3-1 | 콘텐츠 - (검진 결과가 없을 경우 노출됩니다.| 
+| 3-2 | 검진 기록 - 검진 결과가 있을 경우 노출됩니다. 최대 nn개 까지 제공합니다. (초과 시 가장 오래된 기록부터 삭제)| 
+
+
+
+
