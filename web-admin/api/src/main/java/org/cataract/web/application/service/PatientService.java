@@ -9,6 +9,7 @@ import org.cataract.web.presentation.dto.responses.PatientResponseDto;
 import org.springframework.data.domain.Pageable;
 
 import java.io.ByteArrayInputStream;
+import java.util.List;
 
 public interface PatientService {
 
@@ -17,7 +18,7 @@ public interface PatientService {
     PatientResponseDto updatePatient(Institution institution, Integer patientId, UpdatePatientRequestDto updatePatientRequestDto);
     void deletePatient(Institution institution, Integer patientId);
 
-    Object getPatientsByInstitution(Institution institution, PatientListRequestDto patientListRequestDto, Pageable pageable);
+    Object getPatientsByInstitution(List<Institution> institutionList, PatientListRequestDto patientListRequestDto, Pageable pageable);
 
     FullPatientDataDto getFullPatientData(Institution institution, Integer patientId, int numOfImages);
 

@@ -98,7 +98,6 @@ public class SessionTokenServiceImpl implements SessionTokenService {
         return mapper;
     }
 
-
     public AppToken validateAccessToken(String token) throws InvalidTokenException, PasetoException {
         AppToken appToken = decrypt(token).orElseThrow(InvalidTokenException::new);
         String username = appToken.getUsername();

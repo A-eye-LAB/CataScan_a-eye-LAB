@@ -61,8 +61,7 @@ docker-compose up --build -d
 | `APP_IMAGE_BUCKET_NAME`, `APP_IMAGE_BUCKET_REGION` | S3버킷명 및 리전(운영서버용)  | `catascan-api-bucket`, `ap-northeast-2` |
 
 ### How to deploy
-- EC2인스턴스, S3버킷, RDS인스턴스, AWS 사용자의 액세스키를 생성하고, EC2인스턴스에 SSH로 접근한 부분에서 시작합니다. 
-- (추가 테스트 후 확인된 내용으로 작성할 예정입니다.)
+- EC2인스턴스, S3버킷, RDS인스턴스, AWS 사용자의 액세스키를 생성하고, EC2인스턴스에 SSH로 접근한 부분에서 시작합니다.
 
 #### 기본 패키지 설치 및 ec2-user 권한 확인
 ```
@@ -70,8 +69,8 @@ docker-compose up --build -d
 sh 01.install_docker.sh
 logout
 ```
-ssh 로그아웃 이후 다시 로그인 후
 ```
+# ssh 로그아웃 이후 다시 로그인 후
 # 도커 이미지 빌드 후 로컬 레지스트리에 도커 이미지 업로드
 sh 02.build_docker_image.sh
 ```
@@ -108,10 +107,21 @@ sh 04.kube_deploy.sh
 
 #### API 서버 확인
 ```
-curl http://localhost/management/health
+curl http://localhost:8080/management/health
 ```
 
-
+### * 별도 S3버킷 및 RDS 없이 EC2 인스턴스로 API 서버 구성하기. 
+```
+# 도커 설치 및 권한 설정
+sh 01.install_docker.sh
+logout
+```
+```
+# 프로메테우스와 그라파나 없는 도커 컴포즈 run
+rm docker-compose.yml Dockerfile
+mv docker-compose-light.yml docker-compose.yml
+docker-compose up -d
+```
 
 [처음으로](../overview.md) |
 [소개로](00_introduction.md) |

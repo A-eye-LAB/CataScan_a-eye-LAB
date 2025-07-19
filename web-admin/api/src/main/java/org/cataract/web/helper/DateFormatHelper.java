@@ -5,10 +5,14 @@ import java.text.SimpleDateFormat;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
+import java.util.Locale;
 
 public class DateFormatHelper {
 
     private static final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
+
+    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern(
+            "uuuu-MM-dd'T'HH:mm:ssX", Locale.getDefault());
     private static final SimpleDateFormat yyyyMMddFormat = new SimpleDateFormat("yyyyMMdd");
 
 
@@ -17,7 +21,7 @@ public class DateFormatHelper {
     }
 
     public static String date2StringSep(OffsetDateTime date) {
-        return simpleDateFormat.format(date);
+        return FORMATTER.format(date);
     }
 
     public static String date2StringWithoutSep(Date date) {

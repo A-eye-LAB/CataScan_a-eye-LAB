@@ -36,7 +36,10 @@ public class Patient {
     private LocalDate registrationDate;
 
     @OneToMany(mappedBy = "patient", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Reports> reports;
+    private List<Report> reports;
+
+    @OneToMany(mappedBy = "patient", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<PatientProfiles> patientProfiles;
 
     @CreationTimestamp
     @Column(updatable = false, name = "created_at")
@@ -56,7 +59,7 @@ public class Patient {
     public Patient(CreatePatientRequestDto createPatientRequestDto, Institution institution, Integer patientId) {
 
         this.patientId = patientId;
-        this.name = createPatientRequestDto.getName();
+        this.name = createPatientRequestDto.getPatientName();
         this.sex = createPatientRequestDto.getSex();
         this.dateOfBirth = createPatientRequestDto.getDateOfBirth();
         this.phoneNum = createPatientRequestDto.getPhoneNum();

@@ -8,6 +8,7 @@ spring:
     driver-class-name: org.postgresql.Driver
     hikari:
       connection-init-sql: SET TIME ZONE 'UTC'
+      maximum-pool-size: 10
   main:
     lazy-initialization: true
 
@@ -71,6 +72,9 @@ app:
   image:
     filepath: /app/uploads
     baseurl: /reports/images
+    bucket:
+      name: eyelab-prod
+      region: ap-northeast-2
 
   host:
     url: http://localhost
@@ -80,6 +84,8 @@ app:
     retention:
       cron: "0 0 1 * * ?"
       days: 2000
+
+# 모니터링 관련 사항 (prometheus와 grafana 관련 사항)
 
 management:
   endpoints:

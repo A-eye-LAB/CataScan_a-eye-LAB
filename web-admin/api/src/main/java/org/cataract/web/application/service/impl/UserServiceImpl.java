@@ -1,11 +1,9 @@
 package org.cataract.web.application.service.impl;
 
 import lombok.extern.slf4j.Slf4j;
+import org.cataract.web.application.service.ImageStorageService;
 import org.cataract.web.application.service.UserService;
-import org.cataract.web.domain.Institution;
-import org.cataract.web.domain.Role;
-import org.cataract.web.domain.SessionToken;
-import org.cataract.web.domain.User;
+import org.cataract.web.domain.*;
 import org.cataract.web.domain.exception.UserAlreadyExistsException;
 import org.cataract.web.domain.exception.UserNotFoundException;
 import org.cataract.web.infra.InstitutionRepository;
@@ -39,18 +37,23 @@ public class UserServiceImpl implements UserService {
     private final PasswordEncoder passwordEncoder;
     private final SessionTokenRepository sessionTokenRepository;
 
+    private final ImageStorageService imageStorageService;
+
     @Value("${app.admin.username}")
     String adminUser;
+
 
     public UserServiceImpl(UserRepository userRepository,
     InstitutionRepository institutionRepository,
     PasswordEncoder passwordEncoder,
-    SessionTokenRepository sessionTokenRepository) {
+    SessionTokenRepository sessionTokenRepository,
+                           ImageStorageService imageStorageService) {
 
        this.userRepository = userRepository;
        this.institutionRepository = institutionRepository;
        this.passwordEncoder = passwordEncoder;
        this.sessionTokenRepository = sessionTokenRepository;
+       this.imageStorageService = imageStorageService;
 
     }
 
@@ -60,7 +63,9 @@ public class UserServiceImpl implements UserService {
         Institution userInstitution;
         Optional<Institution> institution = institutionRepository.findByName(createUserRequestDto.getInstitutionName());
         if (institution.isEmpty()) {
+            ImageStorage imageStorage = imageStorageService.getImageStorageByBucketName(createUserRequestDto.getBucketName());
             userInstitution = new Institution(createUserRequestDto.getInstitutionName());
+            userInstitution.setImageStorage(imageStorage);
             institutionRepository.save(userInstitution);
             log.debug("institution {} created for user {}", createUserRequestDto.getInstitutionName(), createUserRequestDto.getUsername());
         } else {
@@ -81,7 +86,6 @@ public class UserServiceImpl implements UserService {
 
     }
 
-    @Transactional(readOnly = true)
     public Object getUserList(UserListRequestDto userListRequestDto, Pageable pageable) {
 
         Specification<User> spec = Specification.where(null);
@@ -101,27 +105,26 @@ public class UserServiceImpl implements UserService {
         }
         if (Objects.nonNull(userListRequestDto.getEndDate())) {
             spec = spec.and((root, query, criteriaBuilder) ->
-                    criteriaBuilder.lessThanOrEqualTo(root.get("createdAt"), userListRequestDto.getEndDate())
+                    criteriaBuilder.lessThanOrEqualTo(root.get("createdAt"), userListRequestDto.getEndDate().atTime(23, 59, 59))
             );
         }
-
 
         if (pageable.isPaged()) {
             Sort.Direction direction = Sort.Direction.fromString(userListRequestDto.getSortDir());
             pageable = PageRequest.of(userListRequestDto.getPage(), userListRequestDto.getSize(),
                     Sort.by(direction, userListRequestDto.getSortBy()));
             Page<UserResponseDto> userResponseDtoPage = userRepository.findAll(spec, pageable).map(UserResponseDto::toDto);
-            log.debug("user list retrieved");
+            log.debug("user list retrieved by page");
             return userResponseDtoPage;
         } else {
-            List<UserResponseDto> userResponseDtoList = userRepository.findAll(spec).stream().map(UserResponseDto::toDto).toList();
-            log.debug("user list retrieved");
+            Sort sort = Sort.by( Sort.Direction.fromString(userListRequestDto.getSortDir()), userListRequestDto.getSortBy());
+            List<UserResponseDto> userResponseDtoList = userRepository.findAll(spec, sort).stream().map(UserResponseDto::toDto).toList();
+            log.debug("user list retrieved by list");
             return userResponseDtoList;
         }
 
     }
 
-    @Transactional(readOnly = true)
     public UserResponseDto getUser(Long id) {
 
         User user = userRepository.findById(id).orElseThrow(UserNotFoundException::new);
@@ -150,11 +153,16 @@ public class UserServiceImpl implements UserService {
         if (updateUserRequestDto.getEmail() != null)
             user.setEmail(updateUserRequestDto.getEmail());
 
+        if (updateUserRequestDto.getBucketName() != null);
+            ImageStorage imageStorage = imageStorageService.getImageStorageByBucketName(updateUserRequestDto.getBucketName());
+
         Institution userInstitution;
         Optional<Institution> optionalInstitution = institutionRepository.findByName(updateUserRequestDto.getInstitutionName());
 
         if (optionalInstitution.isEmpty()) {
             userInstitution = new Institution(updateUserRequestDto.getInstitutionName());
+            if (imageStorage != null)
+                userInstitution.setImageStorage(imageStorage);
             institutionRepository.save(userInstitution);
             user.setInstitution(userInstitution);
         }
@@ -180,7 +188,6 @@ public class UserServiceImpl implements UserService {
 
     }
 
-    @Transactional(readOnly = true)
     public UserResponseDto getUserByUsername(String username) {
         User user = userRepository.findByUsernameAndRoleNot(username, Role.DELETED)
                 .orElseThrow(UserNotFoundException::new);
@@ -212,7 +219,6 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @Transactional(readOnly = true)
     public Institution getInstitution(String username) {
         User user = userRepository.findByUsernameAndRoleNot(username, Role.DELETED)
                 .orElseThrow(UserNotFoundException::new);

@@ -22,14 +22,14 @@ public class PatientProfiles {
     private String remarks;
 
     @Column(length = 2000)
-    private String additionalMedicalInfo;
+    private String healthInfo;
 
     @ManyToOne
-    @JoinColumn(name = "patient_pk", nullable = false)
+    @JoinColumn(name = "patient_pk")
     private Patient patient;
 
     @ManyToOne
-    @JoinColumn(name = "institution_id", nullable = false)
+    @JoinColumn(name = "institution_id")
     private Institution institution;
 
     private Date visitDate;
@@ -37,22 +37,21 @@ public class PatientProfiles {
     public PatientProfiles(CreateProfileRequestDto createProfileRequestDto) {
         this.remarks = createProfileRequestDto.getRemarks();
         if (createProfileRequestDto.getHealthInfo() != null) {
-            this.additionalMedicalInfo = createProfileRequestDto.getHealthInfo().toString();
+            this.healthInfo = createProfileRequestDto.getHealthInfo().toString();
         }
         this.visitDate = createProfileRequestDto.getHealthInfo().getVisitDate();
     }
 
     public PatientProfiles(UpdateProfileRequestDto updateProfileRequestDto) {
-
         this.remarks = updateProfileRequestDto.getRemarks();
         if (updateProfileRequestDto.getHealthInfo() != null) {
-            this.additionalMedicalInfo = updateProfileRequestDto.getHealthInfo().toString();
+            this.healthInfo = updateProfileRequestDto.getHealthInfo().toString();
         }
     }
 
     public PatientProfiles() {
         this.remarks = "";
-        this.additionalMedicalInfo = "";
+        this.healthInfo = "";
         this.visitDate = new Date();
     }
 
@@ -61,9 +60,9 @@ public class PatientProfiles {
         this.institution = patient.getInstitution();
         this.remarks = createPatientRequestDto.getRemarks();
         if (createPatientRequestDto.getHealthInfo() != null) {
-            this.additionalMedicalInfo = createPatientRequestDto.getHealthInfo().toString();
+            this.healthInfo = createPatientRequestDto.getHealthInfo().toString();
         } else {
-            this.additionalMedicalInfo = new PatientHealthInfo().toString();
+            this.healthInfo = new PatientHealthInfo().toString();
         }
 
     }

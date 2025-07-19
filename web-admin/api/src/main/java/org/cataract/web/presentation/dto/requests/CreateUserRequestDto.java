@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
+import org.cataract.web.domain.Role;
 
 @Getter
 @Setter
@@ -22,4 +23,6 @@ public class CreateUserRequestDto {
 
     @NotBlank(message = "Institution name is mandatory")
     String institutionName;
+
+    String bucketName;
 }

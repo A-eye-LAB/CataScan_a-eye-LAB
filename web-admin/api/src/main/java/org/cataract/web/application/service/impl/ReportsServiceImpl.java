@@ -2,15 +2,17 @@ package org.cataract.web.application.service.impl;
 
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
+import org.cataract.web.application.service.FindReportCandidateService;
 import org.cataract.web.application.service.ImageService;
 import org.cataract.web.application.service.ReportsService;
 import org.cataract.web.domain.Institution;
 import org.cataract.web.domain.Patient;
-import org.cataract.web.domain.Reports;
+import org.cataract.web.domain.Report;
 import org.cataract.web.domain.exception.PatientNotFoundException;
 import org.cataract.web.domain.exception.ReportNotFoundException;
 import org.cataract.web.infra.PatientRepository;
 import org.cataract.web.infra.ReportsRepository;
+import org.cataract.web.presentation.dto.responses.ReportCommentResponseDto;
 import org.cataract.web.presentation.dto.requests.*;
 import org.cataract.web.presentation.dto.responses.*;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,9 +25,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -38,12 +38,16 @@ public class ReportsServiceImpl implements ReportsService {
 
     private final ImageService imageService;
 
+    private final FindReportCandidateService findReportCandidateService;
+
     public ReportsServiceImpl(ReportsRepository reportsRepository,
                               PatientRepository patientRepository,
-                              ImageService imageService) {
+                              ImageService imageService,
+                              FindReportCandidateService findReportCandidateService) {
         this.reportsRepository = reportsRepository;
         this.patientRepository = patientRepository;
         this.imageService = imageService;
+        this.findReportCandidateService = findReportCandidateService;
     }
 
     @Value("${app.image.filepath}")
@@ -72,25 +76,26 @@ public class ReportsServiceImpl implements ReportsService {
         String uuid = UUID.randomUUID().toString();
         String shortUuid = uuid.substring(0, 4);
         reportRequestDto.setScanDate(LocalDateTime.now());
-        Reports reports = new Reports(reportRequestDto);
-        log.debug("[{}] saving eye image {} from app", institution.getName(), reports.getImageIdentifier());
+        Report report = new Report(reportRequestDto);
+        log.debug("[{}] saving eye image {} from app", institution.getName(), report.getImageIdentifier());
         if (reportRequestDto.getLeftImage() != null) {
             String leftImageFilename = reportRequestDto.getImageIdentifier()
                     + "-L-" + shortUuid + getExtension(reportRequestDto.getLeftImage().getOriginalFilename());
-            String leftImageFileUrl = imageService.uploadFile(reportRequestDto.getLeftImage(), leftImageFilename);
-            reports.setLImagePath(leftImageFileUrl);
+            String leftImageFileUrl = imageService.uploadFile(reportRequestDto.getLeftImage(), leftImageFilename, institution.getImageStorage());
+            report.setLImagePath(leftImageFileUrl);
         }
         if (reportRequestDto.getRightImage() != null) {
             String rightImageFilename = reportRequestDto.getImageIdentifier()
                     + "-R-" + shortUuid + getExtension(reportRequestDto.getRightImage().getOriginalFilename());
-            String rightImageFileUrl = imageService.uploadFile(reportRequestDto.getRightImage(), rightImageFilename);
-            reports.setRImagePath(rightImageFileUrl);
+            String rightImageFileUrl = imageService.uploadFile(reportRequestDto.getRightImage(), rightImageFilename, institution.getImageStorage());
+            report.setRImagePath(rightImageFileUrl);
         }
-        reports.setPatient(null);
-        reports.setInstitution(institution);
-        reports = reportsRepository.saveAndFlush(reports);
-        log.debug("[{}] saved eye image {} from app", institution.getName(), reports.getImageIdentifier());
-        return ReportResponseDto.toDto(reports);
+        report.setPatient(null);
+        report.setInstitution(institution);
+        report.setComments(reportRequestDto.getComments());
+        report = reportsRepository.save(report);
+        log.debug("[{}] saved eye image {} from app", institution.getName(), report.getImageIdentifier());
+        return ReportResponseDto.toDto(report);
     }
 
     public String getExtension(String filename) {
@@ -99,51 +104,51 @@ public class ReportsServiceImpl implements ReportsService {
 
     @Transactional
     public ReportLinkResponseDto linkReportWithPatient(Institution institution, long reportId, int patientId) {
-        Reports reports = reportsRepository.findById(reportId)
+        Report report = reportsRepository.findById(reportId)
                 .orElseThrow(ReportNotFoundException::new);
 
         Patient patient =
                 patientRepository.findByPatientIdAndInstitutionAndDataStatusGreaterThanEqual(patientId, institution, 1)
                         .orElseThrow(PatientNotFoundException::new);
-        reports.setPatient(patient);
-        reports.setImageIdentifier(patient.getName() + "=" + patient.getSex());
-        reports = reportsRepository.save(reports);
-        log.debug("[{}] linked the report {} with patient {}", institution.getName(), reports.getRImagePath(), patient.getName());
-        return new ReportLinkResponseDto(patient, reports);
+        report.setPatient(patient);
+        report.setImageIdentifier(patient.getName() + "=" + patient.getSex());
+        report = reportsRepository.save(report);
+        log.debug("[{}] linked the report {} with patient {}", institution.getName(), report.getRImagePath(), patient.getName());
+        return new ReportLinkResponseDto(patient, report);
     }
 
     @Transactional
     public ReportLinkResponseDto unlinkReportWithPatient(Institution institution, Long reportId) {
-        Reports reports = reportsRepository.findById(reportId)
+        Report report = reportsRepository.findById(reportId)
                 .orElseThrow(ReportNotFoundException::new);
 
-        reports.setPatient(null);
-        reports = reportsRepository.save(reports);
-        log.debug("[{}] linked the report {}", institution.getName(), reports.getReportId());
-        return new ReportLinkResponseDto(reports);
+        report.setPatient(null);
+        report = reportsRepository.save(report);
+        log.debug("[{}] linked the report {}", institution.getName(), report.getReportId());
+        return new ReportLinkResponseDto(report);
 
     }
 
     @Override
     @Transactional
     public ReportCommentResponseDto updateReportComments(Institution institution, Long reportId, ReportCommentRequestDto reportCommentRequestDto) {
-        Reports report = reportsRepository.findById(reportId).orElseThrow(ReportNotFoundException::new);
+        Report report = reportsRepository.findById(reportId).orElseThrow(ReportNotFoundException::new);
         report.setComments(reportCommentRequestDto.getComments());
         reportsRepository.save(report);
         return ReportCommentResponseDto.toDto(reportId, reportCommentRequestDto.getComments());
     }
 
-    
     @Override
-    @Transactional(readOnly = true)
+    @Transactional
     public ReportCommentResponseDto getReportComments(Institution institution, Long reportId) {
         String reportComment = reportsRepository.findCommentsById(reportId);
         return ReportCommentResponseDto.toDto(reportId, reportComment);
     }
 
-    public Object getReportsByInstitutionAndDateRange(Institution institution, ReportsListRequestDto reportsListRequestDto, Pageable pageable) {
+    @Transactional
+    public Object getReportsByInstitutionAndDateRange(List<Institution> institutionList, ReportsListRequestDto reportsListRequestDto, Pageable pageable) {
 
-        Specification<Reports> spec = getJpaSpecFromRequest(reportsListRequestDto, institution);
+        Specification<Report> spec = getJpaSpecFromRequest(reportsListRequestDto, institutionList);
 
         if (reportsListRequestDto.getSortBy().equals("name"))
             reportsListRequestDto.setSortBy("imageIdentifier");
@@ -152,8 +157,8 @@ public class ReportsServiceImpl implements ReportsService {
         if (pageable.isPaged()) {
             pageable = PageRequest.of(reportsListRequestDto.getPage(), reportsListRequestDto.getSize(),
                     Sort.by(direction, reportsListRequestDto.getSortBy()));
-            Page<Reports> reportsList = reportsRepository.findAll(spec, pageable);
-            log.debug("[{}] fetched reports list", institution.getName());
+            Page<Report> reportsList = reportsRepository.findAll(spec, pageable);
+            log.debug("[{}] fetched reports list", institutionList);
             switch (reportsListRequestDto.getLinkStatus()) {
                 case 1:
                     reportsList = filterLinkedReports(reportsList);
@@ -167,24 +172,25 @@ public class ReportsServiceImpl implements ReportsService {
             return reportsList.map(ReportSimpleResponseDto::toDto);
         } else {
             Sort sort = Sort.by(direction, reportsListRequestDto.getSortBy());
-            List<Reports> reportsList = reportsRepository.findAll(spec, sort);
-            log.debug("[{}] fetched reports list", institution.getName());
+            List<Report> reportList = reportsRepository.findAll(spec, sort);
+            log.debug("[{}] fetched reports list", institutionList);
             switch (reportsListRequestDto.getLinkStatus()) {
                 case 1:
-                    reportsList = reportsList.stream().filter(r -> r.getPatient() != null).collect(Collectors.toList());
+                    reportList = reportList.stream().filter(r -> r.getPatient() != null).collect(Collectors.toList());
                     break;
                 case 0:
-                    reportsList = reportsList.stream().filter(r -> r.getPatient() == null).collect(Collectors.toList());
+                    reportList = reportList.stream().filter(r -> r.getPatient() == null).collect(Collectors.toList());
                     break;
                 default:
                     break;
             }
-            return reportsList.stream().map(ReportSimpleResponseDto::toDto).toList();
+            return reportList.stream().map(ReportSimpleResponseDto::toDto).toList();
         }
 
     }
 
-    @Transactional(readOnly = true)
+
+    @Transactional
     public Object getReportsByPatient(Institution institution, int patientId,
                                       ReportsListRequestDto reportsListRequestDto, Pageable pageable) {
 
@@ -199,23 +205,16 @@ public class ReportsServiceImpl implements ReportsService {
             pageable = PageRequest.of(reportsListRequestDto.getPage(), reportsListRequestDto.getSize(),
                     Sort.by(direction, reportsListRequestDto.getSortBy()));
 
-            Page<Reports> reportsList = reportsRepository.findByPatientAndInstitution(patient, institution, pageable);
+            Page<Report> reportsList = reportsRepository.findByPatientAndInstitution(patient, institution, pageable);
             log.debug("[{}] fetched report list of patient {} {}", institution.getName(), patient.getName(), patient.getPatientId());
             return reportsList.map(ReportDetailResponseDto::toDto);
         } else {
-            List<Reports> reportsList = reportsRepository.findByPatientAndInstitution(patient, institution);
+            Sort sort = Sort.by( Sort.Direction.fromString(reportsListRequestDto.getSortDir()), reportsListRequestDto.getSortBy());
+            List<Report> reportList = reportsRepository.findByPatientAndInstitution(patient, institution, sort);
             log.debug("[{}] fetched report list of patient {} {}", institution.getName(), patient.getName(), patient.getPatientId());
-            return reportsList.stream().map(ReportDetailResponseDto::toDto).toList();
+            return reportList.stream().map(ReportDetailResponseDto::toDto).toList();
 
         }
-    }
-
-    @Transactional(readOnly = true)
-    public List<Reports> getReportListByPatient(Patient patient) {
-
-        List<Reports> reportsList = reportsRepository.findByPatient(patient);
-        log.debug("fetched report list of patient {} {}", patient.getName(), patient.getPatientId());
-        return reportsList;
     }
 
     @Transactional(readOnly = true)
@@ -228,77 +227,90 @@ public class ReportsServiceImpl implements ReportsService {
         Pageable pageable = PageRequest.of(0, 10,
                 Sort.by(direction, "reportId"));
 
-        Page<Reports> reportsList = reportsRepository.findByPatientAndInstitution(patient, institution, pageable);
+        Page<Report> reportsList = reportsRepository.findByPatientAndInstitution(patient, institution, pageable);
         log.debug("[{}] fetched report list of patientId: {} with num of images: {}", institution.getName(), patientId, numOfReports);
         return reportsList.stream().limit(numOfReports).map(PatientReportResponseDto::toDto).collect(Collectors.toList());
 
     }
 
-    @Transactional(readOnly = true)
-    public ReportDetailResponseDto getReportById(Institution institution, long reportId) {
+    @Transactional
+    public ReportDetailResponseDto getReportById(long reportId) {
 
-        Reports reports = getReportEntityById(reportId, institution);
-        return ReportDetailResponseDto.toDto(reports);
+        Report report = getReportEntityById(reportId);
+        return ReportDetailResponseDto.toDto(report);
     }
 
     @Transactional(readOnly = true)
     public Object getCandidatePatientsByReportId(Institution institution, long reportId,
                                                                    PatientListRequestDto patientListRequestDto, Pageable pageable) {
 
-        Reports reports = getReportEntityById(reportId, institution);
-        String patientName = reports.getImageIdentifier().split("=")[0];
+        Report report = getReportEntityById(reportId);
+        String patientName = report.getImageIdentifier().split("=")[0];
         String sexFilter;
         if (patientListRequestDto.getSex() != null)
             sexFilter = patientListRequestDto.getSex();
         else {
-            sexFilter = reports.getImageIdentifier().split("=")[1];
+            sexFilter = report.getImageIdentifier().split("=")[1];
         }
-
         Sort.Direction direction = Sort.Direction.fromString(patientListRequestDto.getSortDir());
         LocalDateTime twentyFourHoursAgo = LocalDateTime.now().minusHours(24);
-        List<Reports> reportsListIn1Day = reportsRepository.findByInstitutionAndScanDateAfter(institution, twentyFourHoursAgo);
-        List<Patient> patientsWithReportWithinDay = reportsListIn1Day.stream()
-                .map(Reports::getPatient).filter(Objects::nonNull).filter(p -> p.getSex().equals(sexFilter)).toList();
+        List<Report> reportListIn1Day = reportsRepository.findByInstitutionAndScanDateAfter(institution, twentyFourHoursAgo);
+        List<Patient> patientsWithReportWithinDay = new ArrayList<>();
+        if (!patientListRequestDto.isQuery()) {
+            patientsWithReportWithinDay = reportListIn1Day.stream()
+                    .map(Report::getPatient).filter(Objects::nonNull).filter(p -> p.getSex().equals(sexFilter)).toList();
+        }
         if (pageable.isPaged()) {
             pageable = PageRequest.of(patientListRequestDto.getPage(), patientListRequestDto.getSize(),
                     Sort.by(direction, patientListRequestDto.getSortBy()));
-
             Page<Patient> potentialPatientList = patientRepository.findAllByNameContainingIgnoreCaseAndInstitution(
                     patientName, institution, pageable);
-
-            Page<Patient> filteredPotentialPatientList = filterPatientPage(potentialPatientList, patientsWithReportWithinDay);
-
+            Page<Patient> filteredPotentialPatientList = filterPatientPage(potentialPatientList, patientsWithReportWithinDay, patientName);
             return filteredPotentialPatientList.map(PatientResponseDto::toDto);
         } else {
-
-            List<Patient> potentialPatients = patientRepository.findAllByNameContainingIgnoreCaseAndInstitution(patientName, institution);
+            List<Patient> potentialPatients = patientRepository.findAllByInstitution(institution);
             potentialPatients.removeIf(patientsWithReportWithinDay::contains);
-            return potentialPatients;
+            List<PatientResponseDto> results = potentialPatients.stream()
+                    .map(patient -> new PatientSimilarityCalculation(
+                            patient,
+                            findReportCandidateService.calculateDistance(patient.getName(), patientName)
+                    ))
+                    .sorted(Comparator.comparingInt(PatientSimilarityCalculation::distance))
+                    .limit(20)
+                    .map(patientCalculation ->
+                            PatientResponseDto.toDto(patientCalculation.patient()))
+                    .toList();
+            return results;
         }
-
     }
 
-    public Page<Patient> filterPatientPage(Page<Patient> originalPage, List<Patient> removalList) {
+    public Page<Patient> filterPatientPage(Page<Patient> originalPage, List<Patient> removalList, String patientName) {
         List<Patient> filteredContent = originalPage.getContent().stream()
                 .filter(a -> !removalList.contains(a))
-                .collect(Collectors.toList());
+                .map(patient -> new PatientSimilarityCalculation(
+                        patient,
+                        findReportCandidateService.calculateDistance(patient.getName(), patientName)
+                ))
+                .sorted(Comparator.comparingInt(PatientSimilarityCalculation::distance))
+                .limit(10)
+                .map(PatientSimilarityCalculation::patient).collect(Collectors.toList());
 
         return new PageImpl<>(filteredContent, originalPage.getPageable(), filteredContent.size());
     }
 
     @Override
     @Transactional
-    public void deleteReportById(Institution institution, long reportId) {
-        Reports report = getReportEntityById(reportId, institution);
-        imageService.deleteFile(report.getLImagePath());
-        imageService.deleteFile(report.getRImagePath());
+    public void deleteReportById(long reportId) {
+        Report report = getReportEntityById(reportId);
+        imageService.deleteFile(report.getLImagePath(), report.getInstitution().getImageStorage());
+        imageService.deleteFile(report.getRImagePath(), report.getInstitution().getImageStorage());
         reportsRepository.delete(report);
     }
 
     @Override
     @Transactional
     public ReportDetailResponseDto updateReport(Institution institution, long reportId, UpdateReportRequestDto updateReportRequestDto) {
-        Reports report = getReportEntityById(reportId, institution);
+        Report report = getReportEntityById(reportId);
         if (updateReportRequestDto.getLeftEyeDiagnosis() != null)
             report.setLDiagnosis(updateReportRequestDto.getLeftEyeDiagnosis());
         if (updateReportRequestDto.getRightEyeDiagnosis() != null)
@@ -313,15 +325,10 @@ public class ReportsServiceImpl implements ReportsService {
         return ReportDetailResponseDto.toDto(report);
     }
 
-    @Transactional(readOnly = true)
-    private Reports getReportEntityById(long reportId, Institution institution) {
+    private Report getReportEntityById(long reportId) {
 
-        Reports reports = reportsRepository.findById(reportId).orElseThrow(ReportNotFoundException::new);
-        if (!institution.equals(reports.getInstitution())) {
-            throw new ReportNotFoundException();
-        }
-
-        return reports;
+        Report report = reportsRepository.findById(reportId).orElseThrow(ReportNotFoundException::new);
+        return report;
     }
 
     @Transactional(readOnly = true)
@@ -329,16 +336,16 @@ public class ReportsServiceImpl implements ReportsService {
         return reportsRepository.countUnlinkedReports(institution.getInstitutionId());
     }
 
-    public Page<Reports> filterLinkedReports(Page<Reports> reportsPage) {
-        List<Reports> linkedReports = reportsPage.getContent().stream()
+    public Page<Report> filterLinkedReports(Page<Report> reportsPage) {
+        List<Report> linkedReports = reportsPage.getContent().stream()
                 .filter(report -> report.getPatient() != null)
                 .collect(Collectors.toList());
 
         return new PageImpl<>(linkedReports, reportsPage.getPageable(), linkedReports.size());
     }
 
-    public Page<Reports> filterUnlinkedReports(Page<Reports> reportsPage) {
-        List<Reports> unlinkedReports = reportsPage.getContent().stream()
+    public Page<Report> filterUnlinkedReports(Page<Report> reportsPage) {
+        List<Report> unlinkedReports = reportsPage.getContent().stream()
                 .filter(report -> report.getPatient() == null)
                 .collect(Collectors.toList());
 
@@ -346,13 +353,13 @@ public class ReportsServiceImpl implements ReportsService {
     }
 
 
-    private Specification<Reports> getJpaSpecFromRequest(ReportsListRequestDto reportsListRequestDto, Institution institution) {
+    private Specification<Report> getJpaSpecFromRequest(ReportsListRequestDto reportsListRequestDto, List<Institution> institutionList) {
 
-        Specification<Reports> spec = Specification.where(null);
+        Specification<Report> spec = Specification.where(null);
 
-        if (Objects.nonNull(institution)) {
+        if (institutionList != null && !institutionList.isEmpty()) {
             spec = spec.and((root, query, criteriaBuilder) ->
-                    criteriaBuilder.equal(root.get("institution"), institution)
+                    root.get("institution").in(institutionList)
             );
         }
 
@@ -388,7 +395,7 @@ public class ReportsServiceImpl implements ReportsService {
 
         if (Objects.nonNull(reportsListRequestDto.getEndDate())) {
             spec = spec.and((root, query, criteriaBuilder) ->
-                    criteriaBuilder.lessThanOrEqualTo(root.get("scanDate"), reportsListRequestDto.getEndDate())
+                    criteriaBuilder.lessThanOrEqualTo(root.get("scanDate"), reportsListRequestDto.getEndDate().atTime(23, 59, 59))
             );
         }
         return spec;

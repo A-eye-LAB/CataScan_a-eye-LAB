@@ -38,6 +38,7 @@ public class PatientProfileServiceImpl implements PatientProfileService {
         PatientProfiles updatedPatientProfiles = new PatientProfiles(updateProfileRequestDto);
         updatedPatientProfiles.setPatient(patient);
         updatedPatientProfiles.setProfileId(existingPatientProfiles.getProfileId());
+        updatedPatientProfiles.setInstitution(existingPatientProfiles.getInstitution());
         updatedPatientProfiles = patientProfileRepository.save(updatedPatientProfiles);
         log.debug("[{}] updated patient {} {} profile", institution.getName(), patient.getName(), patientId);
         return PatientProfileResponseDto.toDto(updatedPatientProfiles);
@@ -56,6 +57,7 @@ public class PatientProfileServiceImpl implements PatientProfileService {
         patientProfileRepository.delete(patientProfiles);
     }
 
+    @Transactional(readOnly = true)
     public PatientProfileResponseDto getPatientProfilesByPatientIdAndInstitution(Institution institution, int patientId) {
 
         Patient patient = patientRepository.findByPatientIdAndInstitutionAndDataStatusGreaterThanEqual(patientId, institution, 1)
@@ -66,7 +68,7 @@ public class PatientProfileServiceImpl implements PatientProfileService {
         log.info("found Patient Profile for patientId : {}, profileId : {}", patientId, patientProfiles.getProfileId());
         return PatientProfileResponseDto.toDto(patientProfiles);
     }
-    
+
     @Transactional
     public PatientProfileResponseDto createPatientProfile(Institution institution, int patientId, CreateProfileRequestDto createProfileRequestDto) {
 

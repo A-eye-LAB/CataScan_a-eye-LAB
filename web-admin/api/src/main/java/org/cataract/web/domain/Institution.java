@@ -33,6 +33,11 @@ public class Institution {
     @OneToMany(mappedBy = "institution", cascade = CascadeType.ALL)
     private List<User> users;
 
+    @ManyToOne
+    @JoinColumn(name = "image_storage_id")
+    private ImageStorage imageStorage;
+
+
     public Institution() {
 
     }
@@ -41,4 +46,7 @@ public class Institution {
         this.name = name;
     }
 
+    public void setImageStorage(ImageStorage imageStorage) {
+        this.imageStorage = imageStorage;
+    }
 }

@@ -15,7 +15,7 @@ import java.util.Date;
 public class PatientListRequestDto extends ListRequestDto{
 
     @Transient
-    private static final String DEFAULT_SORT_BY = "createdAt";
+    private static final String DEFAULT_SORT_BY = "updatedAt";
     @Transient
     private static final String DEFAULT_SORT_DIRECTION = "desc";
 
@@ -51,6 +51,8 @@ public class PatientListRequestDto extends ListRequestDto{
     @Range(min=0, max=1)
     private int dataStatus = 1;
 
+    private boolean isQuery = true;
+
     public PatientListRequestDto(String query, LocalDate startDate, LocalDate endDate, Integer page, Integer size,
                                  String sortBy, String sortDir, Integer dataStatus, String sex, Date dateOfBirthFrom, Date dateOfBirthTo) {
         super();
@@ -78,7 +80,8 @@ public class PatientListRequestDto extends ListRequestDto{
             this.dateOfBirthTo = dateOfBirthTo;
     }
 
-    public PatientListRequestDto(String query, LocalDate startDate, LocalDate endDate, Integer page, Integer size, String sortBy, String sortDir) {
+    public PatientListRequestDto(String query, LocalDate startDate, LocalDate endDate, Integer page, Integer size,
+                                 String sortBy, String sortDir, String sex, Boolean isQuery) {
         if (query !=null)
             this.query = query;
         if (startDate !=null)
@@ -93,6 +96,10 @@ public class PatientListRequestDto extends ListRequestDto{
             this.sortBy = sortBy;
         if (sortDir !=null)
             this.sortDir = sortDir;
+        if (sex != null)
+            this.sex = sex;
+        if (isQuery != null)
+            this.isQuery = isQuery;
     }
 
     public PatientListRequestDto(String query, LocalDate startDate, LocalDate endDate, String sortBy, String sortDir,

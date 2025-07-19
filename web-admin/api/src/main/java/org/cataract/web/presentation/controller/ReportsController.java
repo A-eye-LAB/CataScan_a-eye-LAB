@@ -30,6 +30,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @RestController
 @RequestMapping("/reports")
@@ -140,7 +141,7 @@ public class ReportsController {
             )
             @RequestParam(required = false) String sortDir,
             @Pattern(
-                    regexp = "^(male|female)$",
+                    regexp = "^(male|female|other)$",
                     message = "only accepts 'male', 'female' or 'other' as 'sex'"
             )
             @RequestParam(required = false) String sex,
@@ -165,7 +166,7 @@ public class ReportsController {
         log.info("[{}] Received request to retrieve report list by {}", institution.getName(), reportsListRequestDto);
         try {
             var reportSimpleResponseDtoList =
-                    reportsService.getReportsByInstitutionAndDateRange(institution, reportsListRequestDto, pageable);
+                    reportsService.getReportsByInstitutionAndDateRange(List.of(institution), reportsListRequestDto, pageable);
             log.info("[{}] reports list retrieved successfully", institution.getName());
             return ResponseEntity.ok(reportSimpleResponseDtoList);
         } catch (Exception ex) {
@@ -239,7 +240,7 @@ public class ReportsController {
         Institution institution = userService.getInstitution(username);
         log.info("[{}] reportId: {} Received request to retrieve detailed info", institution.getName(), reportId);
         try {
-            ReportDetailResponseDto reportDetailResponseDto = reportsService.getReportById(institution, reportId);
+            ReportDetailResponseDto reportDetailResponseDto = reportsService.getReportById(reportId);
             log.info("[{}] reportId: {} report info retrieved successfully", institution.getName(), reportId);
             return ResponseEntity.ok(reportDetailResponseDto);
         } catch (Exception ex) {
@@ -274,7 +275,7 @@ public class ReportsController {
         Institution institution = userService.getInstitution(username);
         log.info("[{}] reportId: {} Received request to delete", institution.getName(), reportId);
         try {
-            reportsService.deleteReportById(institution, reportId);
+            reportsService.deleteReportById(reportId);
             log.info("[{}] reportId: {} report deleted successfully", institution.getName(), reportId);
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponseDto("successfully deleted or report does not exist"));
         } catch (Exception ex) {
@@ -289,6 +290,11 @@ public class ReportsController {
             @PathVariable long reportId,
             @Size(max=30, message = "query must be smaller than 30 characters")
             @RequestParam(value = "q", required = false) String query,
+            @Pattern(
+                    regexp = "^(male|female|other)$",
+                    message = "only accepts 'male', 'female' or 'other' as 'sex'"
+            )
+            @RequestParam(required = false) String sex,
             @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
             @RequestParam(required = false) LocalDate startDate,
             @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
@@ -306,15 +312,15 @@ public class ReportsController {
                     message = "only accepts 'asc' or 'desc' as 'sortDir'"
             )
             @RequestParam(required = false) String sortDir,
+            @RequestParam(required = false) Boolean isQuery,
             Authentication authentication) {
         String username = authentication.getName();
         Institution institution = userService.getInstitution(username);
         log.info("[{}] reportId: {} Received request to retrieve candidate list", institution.getName(), reportId);
         try {
             PatientListRequestDto patientListRequestDto =
-                    new PatientListRequestDto(query, startDate, endDate, page, size,sortBy, sortDir);
+                    new PatientListRequestDto(query, startDate, endDate, page, size,sortBy, sortDir, sex, isQuery);
             Pageable pageable = (page != null && size != null) ? Pageable.ofSize(size).withPage(page) : Pageable.unpaged();
-
             var patientResponseDtos = reportsService.getCandidatePatientsByReportId(
                             institution, reportId, patientListRequestDto, pageable);
             if (pageable.isPaged()) {

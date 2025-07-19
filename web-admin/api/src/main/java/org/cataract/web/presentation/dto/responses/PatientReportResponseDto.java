@@ -1,8 +1,8 @@
 package org.cataract.web.presentation.dto.responses;
 
 import lombok.Getter;
+import org.cataract.web.domain.Report;
 import org.cataract.web.helper.DateFormatHelper;
-import org.cataract.web.domain.Reports;
 import org.cataract.web.presentation.dto.ResponseDto;
 
 @Getter
@@ -20,18 +20,18 @@ public class PatientReportResponseDto implements ResponseDto {
     String rightEyeRemarks;
 
 
-    public static PatientReportResponseDto toDto(Reports reports) {
+    public static PatientReportResponseDto toDto(Report report) {
         PatientReportResponseDto patientReportResponseDto = new PatientReportResponseDto();
-        patientReportResponseDto.reportId = reports.getReportId();
-        patientReportResponseDto.leftEyeImagePath = reports.getLImagePath();
-        patientReportResponseDto.rightEyeImagePath = reports.getRImagePath();
-        patientReportResponseDto.scanDate = DateFormatHelper.datetime2String(reports.getScanDate());
-        patientReportResponseDto.leftAiResult = reports.getLAiResult();
-        patientReportResponseDto.rightAiResult = reports.getRAiResult();
-        patientReportResponseDto.leftEyeDiagnosis = reports.getLDiagnosis();
-        patientReportResponseDto.rightEyeDiagnosis = reports.getLDiagnosis();
-        patientReportResponseDto.leftEyeRemarks = reports.getLRemark();
-        patientReportResponseDto.rightEyeRemarks = reports.getRRemark();
+        patientReportResponseDto.reportId = report.getReportId();
+        patientReportResponseDto.leftEyeImagePath = report.getLImagePath();
+        patientReportResponseDto.rightEyeImagePath = report.getRImagePath();
+        patientReportResponseDto.scanDate = DateFormatHelper.datetime2String(report.getScanDate());
+        patientReportResponseDto.leftAiResult = report.getLAiResult();
+        patientReportResponseDto.rightAiResult = report.getRAiResult();
+        patientReportResponseDto.leftEyeDiagnosis = report.getLDiagnosis();
+        patientReportResponseDto.rightEyeDiagnosis = report.getLDiagnosis();
+        patientReportResponseDto.leftEyeRemarks = report.getLRemark();
+        patientReportResponseDto.rightEyeRemarks = report.getRRemark();
         return patientReportResponseDto;
     }
 

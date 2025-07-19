@@ -24,10 +24,10 @@ public class PatientHealthInfo {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     Date visitDate;
 
-    public static PatientHealthInfo parse(String additionalMedicalInfo) {
+    public static PatientHealthInfo parse(String healthInfoString) {
         try {
             ObjectMapper objectMapper = new ObjectMapper();
-            PatientHealthInfo healthInfo = objectMapper.readValue(additionalMedicalInfo, PatientHealthInfo.class);
+            PatientHealthInfo healthInfo = objectMapper.readValue(healthInfoString, PatientHealthInfo.class);
             return healthInfo;
         } catch (Exception e) {
             e.printStackTrace();

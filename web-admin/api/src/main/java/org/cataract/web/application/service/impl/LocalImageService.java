@@ -3,6 +3,7 @@ package org.cataract.web.application.service.impl;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.cataract.web.application.service.ImageService;
+import org.cataract.web.domain.ImageStorage;
 import org.cataract.web.helper.DateFormatHelper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
@@ -46,11 +47,10 @@ public class LocalImageService implements ImageService  {
     }
 
     @Override
-    public String uploadFile(MultipartFile file, String filename) throws IOException {
+    public String uploadFile(MultipartFile file, String filename, ImageStorage imageStorage) throws IOException {
         String dateDirPath = File.separator + DateFormatHelper.date2StringWithoutSep(new Date()) + File.separator;
         if (!Files.exists(Path.of(uploadDir + dateDirPath)))
             Files.createDirectories(Path.of(uploadDir + dateDirPath));
-
 
         file.transferTo(Path.of(new StringBuilder(uploadDir).append(dateDirPath).append(filename).toString()));
         return new StringBuilder(hostUrl).append(":").append(hostPort).append(imageUrlPath)
@@ -58,7 +58,7 @@ public class LocalImageService implements ImageService  {
     }
 
     @Override
-    public boolean deleteFile(String fileName) {
+    public boolean deleteFile(String fileName, ImageStorage imageStorage) {
         fileName = fileName.substring(imageUrlPath.length());
         try {
             Files.deleteIfExists(Path.of(uploadDir + File.separator + fileName));

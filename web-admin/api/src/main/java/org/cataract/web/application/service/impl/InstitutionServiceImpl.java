@@ -9,6 +9,7 @@ import org.cataract.web.infra.InstitutionRepository;
 import org.cataract.web.presentation.dto.responses.InstitutionResponseDto;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.stream.Collectors;
 
@@ -20,22 +21,24 @@ public class InstitutionServiceImpl implements InstitutionService {
     private final InstitutionRepository institutionRepository;
 
     @Override
+    @Transactional(readOnly = true)
     public Institution getInstitutionByName(String institutionName) {
         return institutionRepository.findByName(institutionName).orElseThrow(InstitutionNotFoundException::new);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Object getAllInstitutions(Pageable pageable) {
         log.debug("retrieving all institutions by list");
         if (pageable.isPaged())
             return institutionRepository.findAll(pageable).map(InstitutionResponseDto::toDto);
         else
             return institutionRepository.findAll().stream().map(InstitutionResponseDto::toDto).collect(Collectors.toList());
-            
 
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Institution getInstitutionById(Integer institutionId) {
         return institutionRepository.findById(institutionId).orElseThrow(InstitutionNotFoundException::new);
     }

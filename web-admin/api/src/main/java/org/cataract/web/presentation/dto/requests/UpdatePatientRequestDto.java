@@ -9,7 +9,10 @@ import org.cataract.web.helper.ValidPastOrPresentDate;
 public class UpdatePatientRequestDto {
 
     @Nullable
-    String name;
+    String patientName;
+
+    @Nullable
+    String sex;
 
     @ValidPastOrPresentDate
     @JsonFormat(pattern = "yyyy-MM-dd")
