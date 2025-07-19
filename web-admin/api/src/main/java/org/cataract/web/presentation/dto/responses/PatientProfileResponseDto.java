@@ -16,7 +16,7 @@ public class PatientProfileResponseDto implements ResponseDto {
         PatientProfileResponseDto patientProfileResponseDto = new PatientProfileResponseDto();
         patientProfileResponseDto.profileId = patientProfiles.getProfileId();
         if (patientProfiles.getProfileId() != null) {
-            patientProfileResponseDto.healthInfo = PatientHealthInfo.parse(patientProfiles.getAdditionalMedicalInfo());
+            patientProfileResponseDto.healthInfo = PatientHealthInfo.parse(patientProfiles.getHealthInfo());
         }
         if (patientProfileResponseDto.healthInfo == null)
             patientProfileResponseDto.healthInfo = new PatientHealthInfo();

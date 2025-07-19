@@ -9,7 +9,7 @@ import lombok.Getter;
 public class UpdateUserRequestDto {
 
     @Nullable
-    @Size(max = 50, message = "username must not exceed 50 characters")
+    @Size(min=4, max = 50, message = "username must be in the range of 4-50 characters")
     private String username;
 
     @Nullable
@@ -23,5 +23,8 @@ public class UpdateUserRequestDto {
     @Nullable
     @Size(min=1, max=100)
     private String institutionName;
+
+    @Nullable
+    private String bucketName;
 
 }

@@ -95,8 +95,11 @@
 │
 ├── docker-compose.yml: 개발서버용 도커컴포즈 환경 구성
 ├── Dockerfile: API서버 컨테이너 이미지 빌드용 Dockerfile
+├── docker-compose-light.yml: 개발서버용 프로메테우스와 그라파나 컨테이너가 없는 도커컴포즈 환경 구성
+├── Dockerfile-light: 별도 모니터링 없는 API서버 컨테이너 이미지 빌드용 Dockerfile
 ├── prometheus.yml: 개발서버용 Prometheus 환경 구성
 └── pom.xml: 자바 라이브러리 구성(Maven) 
+
 
 ```
 

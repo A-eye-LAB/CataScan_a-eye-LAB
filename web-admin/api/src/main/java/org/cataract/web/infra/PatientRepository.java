@@ -4,6 +4,7 @@ import org.cataract.web.domain.Institution;
 import org.cataract.web.domain.Patient;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
@@ -25,7 +26,9 @@ public interface PatientRepository extends JpaRepository<Patient, Long>, JpaSpec
 
     Optional<Patient> findByPatientIdAndInstitutionAndDataStatusEquals(Integer patientId, Institution institution, int i);
 
-    List<Patient> findAllByNameContainingIgnoreCaseAndInstitution(String patientName, Institution institution);
+    List<Patient> findAllByNameContainingIgnoreCaseAndInstitution(String patientName, Institution institution, Sort sort);
+
+    List<Patient> findAllByInstitution(Institution institution);
 
     List<Patient> findByDataStatusEqualsAndUpdatedAtBefore(int dataStatus, OffsetDateTime updatedAtBefore);
 

@@ -4,7 +4,8 @@ public enum AiResult {
 
     UNGRADABLE("ungradable"),
     REQUIRES_ATTENTION("requiresAttention"),
-    LOW_RISK("lowRisk");
+    LOW_RISK("lowRisk"),
+    NEED_FOR_CAUTION("needForCaution");
 
     private final String label;
 

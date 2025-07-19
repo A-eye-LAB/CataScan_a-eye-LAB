@@ -13,8 +13,8 @@ import java.util.Date;
 @Getter
 public class CreatePatientRequestDto {
 
-    @NotBlank(message = "Name is mandatory.")
-    String name;
+    @NotBlank(message = "patientName is mandatory.")
+    String patientName;
 
     @NotBlank(message = "Sex is mandatory.")
     @Pattern(

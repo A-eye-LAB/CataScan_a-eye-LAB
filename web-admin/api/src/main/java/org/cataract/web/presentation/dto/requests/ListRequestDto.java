@@ -23,8 +23,6 @@ public abstract class ListRequestDto {
     @Transient
     private static final LocalDate DEFAULT_START_DATE = LocalDate.of(1900, 1, 1);
     @Transient
-    private static final LocalDate DEFAULT_END_DATE = LocalDate.now().plusDays(1);
-    @Transient
     private static final int DEFAULT_PAGE = 0;
     @Transient
     private static final int DEFAULT_PAGE_SIZE = 10;
@@ -40,7 +38,7 @@ public abstract class ListRequestDto {
     @JsonSerialize(using= LocalDateSerializer.class)
     @JsonDeserialize(using= LocalDateDeserializer.class)
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
-    LocalDate endDate = DEFAULT_END_DATE;
+    LocalDate endDate = getCurrentDate();
     int page = DEFAULT_PAGE;
     int size = DEFAULT_PAGE_SIZE;
 
@@ -62,5 +60,9 @@ public abstract class ListRequestDto {
             return "{}";
         }
 
+    }
+
+    protected LocalDate getCurrentDate() {
+        return LocalDate.now();
     }
 }

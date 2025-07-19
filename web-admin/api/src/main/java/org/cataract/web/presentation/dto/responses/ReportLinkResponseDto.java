@@ -1,7 +1,7 @@
 package org.cataract.web.presentation.dto.responses;
 
 import lombok.Getter;
-import org.cataract.web.domain.Reports;
+import org.cataract.web.domain.Report;
 import org.cataract.web.domain.Patient;
 import org.cataract.web.presentation.dto.ResponseDto;
 
@@ -13,19 +13,19 @@ public class ReportLinkResponseDto implements ResponseDto {
     long reportId;
     String message;
 
-    public ReportLinkResponseDto(Patient patient, Reports reports) {
+    public ReportLinkResponseDto(Patient patient, Report report) {
 
         this.patientId = patient.getPatientId();
         this.patientName = patient.getName();
-        this.reportId = reports.getReportId();
+        this.reportId = report.getReportId();
         this.message = "report and patient linked successfully";
     }
 
-    public ReportLinkResponseDto(Reports reports) {
+    public ReportLinkResponseDto(Report report) {
 
         this.patientId = 0;
         this.patientName = "";
-        this.reportId = reports.getReportId();
+        this.reportId = report.getReportId();
         this.message = "report successfully unlinked";
     }
 }

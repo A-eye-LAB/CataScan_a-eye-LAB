@@ -34,6 +34,7 @@ import org.springframework.web.bind.annotation.*;
 import java.io.ByteArrayInputStream;
 import java.time.LocalDate;
 import java.util.Date;
+import java.util.List;
 
 @RestController
 @RequestMapping("/patients")
@@ -75,6 +76,10 @@ public class PatientController {
             @RequestParam(required = false) String sortDir,
             @Range(min=0, max=1, message = "dataStatus is either 0 or 1")
             @RequestParam(required = false) Integer dataStatus,
+            @Pattern(
+                    regexp = "^(male|female|other)$",
+                    message = "only accepts 'male', 'female' or 'other' as 'sex'"
+            )
             @RequestParam(required = false) String sex,
             @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date dateOfBirthFrom,
             @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date dateOfBirthTo,
@@ -87,7 +92,7 @@ public class PatientController {
         log.info("[{}] Received request to get patient list {} with query {}", institution.getName(), patientListRequestDto, query);
         try {
             Pageable pageable = (page != null && size != null) ? Pageable.ofSize(size).withPage(page) : Pageable.unpaged();
-            var patientResponseDtoList = patientService.getPatientsByInstitution(institution, patientListRequestDto, pageable);
+            var patientResponseDtoList = patientService.getPatientsByInstitution(List.of(institution), patientListRequestDto, pageable);
             log.info("[{}] patient list {} retrieval success", institution.getName(), patientListRequestDto);
             if (pageable.isPaged()) {
                 return ResponseEntity.ok(new OffsetPaginationResult<>((Page<PatientResponseDto>)patientResponseDtoList));
@@ -183,17 +188,17 @@ public class PatientController {
 
     @PutMapping("/{patientId}")
     public ResponseEntity<ResponseDto> updatePatient(Authentication authentication, @PathVariable Integer patientId,
-                                                            @RequestBody UpdatePatientRequestDto updatePatientRequestDto) {
+                                                     @RequestBody UpdatePatientRequestDto updatePatientRequestDto) {
         String username = authentication.getName();
         Institution institution = userService.getInstitution(username);
         try {
-        log.info("[{}] patientId: {} Request to update patient info", institution.getName(), patientId);
-        PatientResponseDto patientResponseDto = patientService.updatePatient(institution, patientId, updatePatientRequestDto);
-        log.info("[{}] patientId: {} updated successfully", institution.getName(), patientId);
-        return ResponseEntity.ok(patientResponseDto);
+            log.info("[{}] patientId: {} Request to update patient info", institution.getName(), patientId);
+            PatientResponseDto patientResponseDto = patientService.updatePatient(institution, patientId, updatePatientRequestDto);
+            log.info("[{}] patientId: {} updated successfully", institution.getName(), patientId);
+            return ResponseEntity.ok(patientResponseDto);
         } catch (PatientNotFoundException ex) {
             log.error("[{}] patientId: {} update failed because patient does not exist or not deleted",
-                institution.getName(), patientId, ex);
+                    institution.getName(), patientId, ex);
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(new ErrorResponseDto(new PatientNotFoundException("patient not found or not deleted")));
         } catch (Exception ex) {
@@ -228,6 +233,6 @@ public class PatientController {
         Institution institution = userService.getInstitution(username);
         log.info("[{}] patientId: {} Request to delete ", institution.getName(), patientId);
         patientService.deletePatient(institution, patientId);
-        return ResponseEntity.ok(new ErrorResponseDto("patient successfully deleted or not found"));
+        return ResponseEntity.ok(new ErrorResponseDto("patient successfully deleted"));
     }
 }

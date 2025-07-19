@@ -31,9 +31,11 @@ public class ReportRequestDto {
         StringBuilder sb = new StringBuilder(imageIdArr[0]).append("=");
         switch (imageIdArr[1]) {
             case "m":
+            case "male":
                 sb.append("male");
                 break;
             case "f":
+            case "female":
                 sb.append("female");
                 break;
             default:

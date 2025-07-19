@@ -8,7 +8,6 @@ import org.cataract.web.application.service.ImageService;
 import org.cataract.web.application.service.ReportsService;
 import org.cataract.web.application.service.PatientService;
 import org.cataract.web.domain.*;
-import org.cataract.web.domain.exception.InstitutionNotFoundException;
 import org.cataract.web.helper.DateFormatHelper;
 import org.cataract.web.domain.exception.PatientNotFoundException;
 import org.cataract.web.infra.InstitutionRepository;
@@ -32,10 +31,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.time.OffsetDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -59,12 +55,19 @@ public class PatientServiceImpl implements PatientService {
 
         patient = patientRepository.save(patient);
         log.debug("[{}] patient {} saved", institution.getName(), patient.getName());
-        PatientProfiles patientProfiles = new PatientProfiles(createPatientRequestDto, patient);
-        patientProfileRepository.save(patientProfiles);
+        createPatientProfile(createPatientRequestDto, patient);
         log.debug("[{}] patient {} profile saved", institution.getName(), patient.getName());
-
         return PatientResponseDto.toDto(patient);
     }
+
+
+    @Transactional
+    public void createPatientProfile(CreatePatientRequestDto createPatientRequestDto, Patient patient) {
+        PatientProfiles patientProfiles = new PatientProfiles(createPatientRequestDto, patient);
+        patientProfileRepository.save(patientProfiles);
+
+    }
+
 
     @Transactional
     public PatientResponseDto updatePatient(Institution institution, Integer patientId, UpdatePatientRequestDto updatePatientRequestDto) {
@@ -72,8 +75,10 @@ public class PatientServiceImpl implements PatientService {
 
         Patient existingPatient = patientRepository.findByPatientIdAndInstitutionAndDataStatusGreaterThanEqual(patientId, institution, 1)
                 .orElseThrow(PatientNotFoundException::new);
-        if (updatePatientRequestDto.getName() != null)
-            existingPatient.setName(updatePatientRequestDto.getName());
+        if (updatePatientRequestDto.getPatientName() != null)
+            existingPatient.setName(updatePatientRequestDto.getPatientName());
+        if (updatePatientRequestDto.getSex() != null)
+            existingPatient.setSex(updatePatientRequestDto.getSex());
         try {
             existingPatient.setDateOfBirth(DateFormatHelper.string2Date(updatePatientRequestDto.getDateOfBirth()));
         } catch (Exception e) {
@@ -102,12 +107,12 @@ public class PatientServiceImpl implements PatientService {
         Optional<PatientProfiles> patientProfiles = patientProfileRepository.findByPatient(patient);
         patientProfiles.ifPresent(patientProfileRepository::delete);
         log.debug("[{}] patient {} deleted profile permanently", institution.getName(), patient.getName());
-        List<Reports> patientReports =
-                (List<Reports>) reportsService.getReportsByPatient(institution, patient.getPatientId(),
+        List<Report> patientReports =
+                (List<Report>) reportsService.getReportsByPatient(institution, patient.getPatientId(),
                         new ReportsListRequestDto(), Pageable.unpaged());
-        for (Reports report: patientReports) {
-            imageService.deleteFile(report.getLImagePath());
-            imageService.deleteFile(report.getRImagePath());
+        for (Report report: patientReports) {
+            imageService.deleteFile(report.getLImagePath(), institution.getImageStorage());
+            imageService.deleteFile(report.getRImagePath(), institution.getImageStorage());
         }
         reportsRepository.deleteAllInBatch(patientReports);
         log.debug("[{}] patient {} deleted reports permanently", institution.getName(), patient.getName());
@@ -122,42 +127,44 @@ public class PatientServiceImpl implements PatientService {
         OffsetDateTime baseDateTime = now.minusDays(retentionDays);
 
         List<Patient> deletePatientList = patientRepository.findByDataStatusEqualsAndUpdatedAtBefore(0, baseDateTime);
-        List<Reports> patientReportsList = new ArrayList<>();
+        List<Report> patientReportList = new ArrayList<>();
         for (Patient patient : deletePatientList) {
             patientProfileRepository.findByPatient(patient).ifPresent(patientProfileRepository::delete);
-            patientReportsList.addAll((List<Reports>) reportsService.getReportsByPatient(patient.getInstitution(), patient.getPatientId(),
+            patientReportList.addAll((List<Report>) reportsService.getReportsByPatient(patient.getInstitution(), patient.getPatientId(),
                     new ReportsListRequestDto(), Pageable.unpaged()));
         }
 
         log.debug("{} patients deleted profile permanently as per retention policy", deletePatientList.size());
-        for (Reports report: patientReportsList) {
-            imageService.deleteFile(report.getLImagePath());
-            imageService.deleteFile(report.getRImagePath());
+        for (Report report: patientReportList) {
+            imageService.deleteFile(report.getLImagePath(), report.getInstitution().getImageStorage());
+            imageService.deleteFile(report.getRImagePath(), report.getInstitution().getImageStorage());
         }
         int deleteReports = deletePatientList.size();
-        reportsRepository.deleteAllInBatch(patientReportsList);
+        reportsRepository.deleteAllInBatch(patientReportList);
         log.debug("{} patient reports deleted reports permanently as per retention policy", deleteReports);
         patientRepository.deleteAllInBatch(deletePatientList);
         return deleteReports;
 
     }
 
-    public Object getPatientsByInstitution(Institution institution, PatientListRequestDto patientListRequestDto, Pageable pageable) {
+    public Object getPatientsByInstitution(List<Institution> institutionList, PatientListRequestDto patientListRequestDto, Pageable pageable) {
 
-        Specification<Patient> spec = getJpaSpecFromRequest(institution.getName(), patientListRequestDto);
-        log.debug("[{}] retrieve patients list with dto {}", institution, patientListRequestDto.toString());
+        Specification<Patient> spec = getJpaSpecFromRequest(institutionList, patientListRequestDto);
+        log.debug("[{}] retrieve patients list with dto {}", Arrays.toString(institutionList.toArray()), patientListRequestDto.toString());
         if (pageable.isPaged()) {
             Sort.Direction direction = Sort.Direction.fromString(patientListRequestDto.getSortDir());
             pageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), Sort.by(direction, patientListRequestDto.getSortBy()));
             Page<Patient> patientsList = patientRepository.findAll(spec, pageable);
             return patientsList.map(PatientResponseDto::toDto);
         } else {
-            List<Patient> patientList = patientRepository.findAll(spec);
+            Sort sort = Sort.by( Sort.Direction.fromString(patientListRequestDto.getSortDir()), patientListRequestDto.getSortBy());
+            List<Patient> patientList = patientRepository.findAll(spec, sort);
             return patientList.stream().map(PatientResponseDto::toDto).collect(Collectors.toList());
         }
     }
 
 
+    @Transactional
     public FullPatientDataDto getFullPatientData(Institution institution, Integer patientId, int numOfReports) {
 ;
 
@@ -178,7 +185,7 @@ public class PatientServiceImpl implements PatientService {
         return FullPatientDataDto.toDto(patient, patientProfileResponseDto, patientReports);
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public PatientResponseDto getPatient(Institution institution, Integer patientId) {
 ;
 
@@ -188,11 +195,10 @@ public class PatientServiceImpl implements PatientService {
         return PatientResponseDto.toDto(patient);
     }
 
-    @Transactional(readOnly = true)
     private List<PatientExportResponseDto> getPatientsListByUserInstitution(Institution institution, PatientListRequestDto patientListRequestDto) {
 ;
 
-        Specification<Patient> spec = getJpaSpecFromRequest(institution.getName(), patientListRequestDto);
+        Specification<Patient> spec = getJpaSpecFromRequest(List.of(institution), patientListRequestDto);
 
         List<Patient> patientList = patientRepository.findAll(spec);
 
@@ -200,6 +206,7 @@ public class PatientServiceImpl implements PatientService {
 
     }
 
+    @Transactional
     public ByteArrayInputStream getPatientsListByUserInstitutionAsCsv(Institution institution, PatientListRequestDto patientListRequestDto) {
 
         List<PatientExportResponseDto> data = getPatientsListByUserInstitution(institution, patientListRequestDto);
@@ -226,15 +233,15 @@ public class PatientServiceImpl implements PatientService {
         return PatientResponseDto.toDto(patient);
     }
 
-    private Specification<Patient> getJpaSpecFromRequest(String institutionName, PatientListRequestDto patientListRequestDto) {
+    private Specification<Patient> getJpaSpecFromRequest(List<Institution> institutionList, PatientListRequestDto patientListRequestDto) {
         Specification<Patient> spec = Specification.where(null);
 
-        if (Objects.nonNull(institutionName) && !institutionName.isBlank()) {
-            Institution institution = institutionRepository.findByName(institutionName).orElseThrow(InstitutionNotFoundException::new);
+        if (institutionList != null && !institutionList.isEmpty()) {
             spec = spec.and((root, query, criteriaBuilder) ->
-                    criteriaBuilder.equal(root.get("institution"), institution)
+                    root.get("institution").in(institutionList)
             );
         }
+
 
         if (Objects.nonNull(patientListRequestDto.getStartDate())) {
             spec = spec.and((root, query, criteriaBuilder) ->
@@ -244,7 +251,7 @@ public class PatientServiceImpl implements PatientService {
 
         if (Objects.nonNull(patientListRequestDto.getEndDate())) {
             spec = spec.and((root, query, criteriaBuilder) ->
-                    criteriaBuilder.lessThanOrEqualTo(root.get("createdAt"), patientListRequestDto.getEndDate())
+                    criteriaBuilder.lessThanOrEqualTo(root.get("createdAt"), patientListRequestDto.getEndDate().atTime(23, 59, 59))
             );
         }
 

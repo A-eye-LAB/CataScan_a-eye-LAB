@@ -3,6 +3,7 @@ package org.cataract.web.presentation.dto.responses;
 import lombok.Getter;
 import org.cataract.web.domain.Patient;
 import org.cataract.web.domain.PatientHealthInfo;
+import org.cataract.web.helper.AgeHelper;
 import org.cataract.web.helper.DateFormatHelper;
 import org.cataract.web.presentation.dto.ResponseDto;
 
@@ -29,7 +30,7 @@ public class FullPatientDataDto implements ResponseDto {
         FullPatientDataDto fullPatientDataDto = new FullPatientDataDto();
         fullPatientDataDto.patientName = patient.getName();
         fullPatientDataDto.dateOfBirth = DateFormatHelper.date2StringSep(patient.getDateOfBirth());
-        fullPatientDataDto.age = DateFormatHelper.calculateAge(patient.getDateOfBirth());
+        fullPatientDataDto.age = AgeHelper.calculateAge(patient.getDateOfBirth());
         fullPatientDataDto.phoneNumber = patient.getPhoneNum();
         PatientHealthInfo patientHealthInfo = PatientHealthInfo.parse(patientProfile.toString());
         if (patientHealthInfo == null)

@@ -2,6 +2,7 @@ package org.cataract.web.application.service.impl;
 
 import lombok.extern.slf4j.Slf4j;
 import org.cataract.web.application.service.ImageService;
+import org.cataract.web.domain.ImageStorage;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
@@ -18,32 +19,26 @@ import java.io.IOException;
 @Slf4j
 @Profile("prod")
 public class S3ImageService implements ImageService {
-    private final S3Client s3Client;
 
-    @Value("${app.image.bucket.name}")
-    String s3BucketName;
-
-    @Value("${app.image.bucket.region}")
-    String s3BucketRegion;
-
-    public S3ImageService() {
-        this.s3Client = S3Client.builder().region(Region.AP_NORTHEAST_2).build();
-    }
-
-    public String uploadFile(MultipartFile file, String filename) throws IOException {
+    public String uploadFile(MultipartFile file, String filename, ImageStorage imageStorage) {
         String key = "uploads/" + filename;
-        s3Client.putObject(
-                PutObjectRequest.builder().bucket("bms-eyelab-test").key(key).build(),
-                RequestBody.fromBytes(file.getBytes())
-        );
-        return new StringBuilder("https://").append(s3BucketName).append(".s3.")
-                .append(s3BucketRegion).append(".amazonaws.com/").append(key).toString();
+        try (S3Client s3Client = S3Client.builder().region(Region.of(imageStorage.getBucketRegion())).build()) {
+            s3Client.putObject(
+                    PutObjectRequest.builder().bucket("bms-eyelab-test").key(key).build(),
+                    RequestBody.fromBytes(file.getBytes())
+            );
+        } catch (Exception e) {
+            log.error("error saving image for {} in the region {} bucket name {}", filename,
+                    imageStorage.getBucketRegion(), imageStorage.getBucketName(), e);
+        }
+        return new StringBuilder("https://").append(imageStorage.getBucketName()).append(".s3.")
+                .append(imageStorage.getBucketRegion()).append(".amazonaws.com/").append(key).toString();
     }
 
-    public boolean deleteFile(String fileName) {
-        try {
+    public boolean deleteFile(String fileName, ImageStorage imageStorage) {
+        try (S3Client s3Client = S3Client.builder().region(Region.of(imageStorage.getBucketRegion())).build();) {
             DeleteObjectRequest deleteObjectRequest = DeleteObjectRequest.builder()
-                    .bucket(s3BucketName)
+                    .bucket(imageStorage.getBucketName())
                     .key(fileName)
                     .build();
 

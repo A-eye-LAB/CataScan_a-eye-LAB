@@ -16,18 +16,18 @@ public interface ReportsService {
 
     ReportLinkResponseDto linkReportWithPatient(Institution institution, long imageId, int patientId);
 
-    Object getReportsByInstitutionAndDateRange(Institution institution, ReportsListRequestDto reportsListRequestDto, Pageable pageable);
+    Object getReportsByInstitutionAndDateRange(List<Institution> institution, ReportsListRequestDto reportsListRequestDto, Pageable pageable);
 
     Object getReportsByPatient(Institution institution, int patientId,
                                ReportsListRequestDto reportsListRequestDto, Pageable pageable);
 
     List<PatientReportResponseDto> getRecentReportByPatientIdAndInstitution(Institution institution, int patientId, int numOfReports);
 
-    ReportDetailResponseDto getReportById(Institution institution, long reportId);
+    ReportDetailResponseDto getReportById(long reportId);
 
     Object getCandidatePatientsByReportId(Institution institution, long reportId, PatientListRequestDto patientListRequestDto, Pageable pageable);
 
-    void deleteReportById(Institution institution, long reportId);
+    void deleteReportById(long reportId);
 
     ReportDetailResponseDto updateReport(Institution institution, long reportId, UpdateReportRequestDto updateReportRequestDto);
 

@@ -2,8 +2,10 @@ openapi: "3.0.3"
 info:
   title: Catascan Web Admin API
   description: API for Catascan Web Admin
-  version: 1.0.1
+  version: 0.9.8
 servers:
+  - url: http://ec2-3-35-207-200.ap-northeast-2.compute.amazonaws.com:8080
+    description: Development server
   - url: http://localhost:8080
     description: Localhost server
       
@@ -12,9 +14,9 @@ paths:
     get:
       summary: GET admin/user/{id}
       description: Retrieve details of a specific User
-      security:
-        - PasetoAuth: ["bearer"]
       operationId: getUser
+      security:
+        - PasetoAuth: [ ]
       parameters:
         - name: id
           in: path
@@ -45,7 +47,7 @@ paths:
       description: Update user details such as name, email, role, etc.
       operationId: updateUser
       security:
-        - PasetoAuth: ["bearer"]
+        - PasetoAuth: []
       parameters:
         - name: id
           in: path
@@ -77,9 +79,9 @@ paths:
     delete:
       summary: DELETE admin/user/{id}
       description: Deletes user with id
-      security: 
-        -  PasetoAuth: ["bearer"]
       operationId: deleteUser
+      security:
+        - PasetoAuth: [ ]
       parameters:
         - name: id
           in: path
@@ -134,8 +136,8 @@ paths:
     post:
       summary: "POST admin/user"
       operationId: "createUser"
-      security: 
-        -  PasetoAuth: ["bearer"]
+      security:
+        - PasetoAuth: [ ]
       requestBody:
         content:
           application/json:
@@ -188,12 +190,12 @@ paths:
                   value:
                     message: "An unexpected error occurred while creating the user."
 
-  /admin/user-list:
+  /admin/users:
     get:
-      summary: "GET admin/user-list"
+      summary: "GET admin/users"
       operationId: "getUserList"
-      security: 
-        -  PasetoAuth: ["bearer"]
+      security:
+        - PasetoAuth: [ ]
       parameters:
         - name: "q"
           in: "query"
@@ -251,8 +253,8 @@ paths:
       responses:
         "200":
           description: >-
-            User list successfully retrieved. 
-            - `page` and `size` **are not** provided -> an array of User objects.
+            - User list successfully retrieved. 
+            - `page` and `size` **are not** provided -> an array of User objects. 
             - `page` or `size` **are** provided -> both pagination and user data.
           content:
             application/json:
@@ -265,10 +267,18 @@ paths:
                       username: "exampleUser1"
                       email: "user1@catascan.com"
                       institutionName: "Cataract Eye Center"
+                      bucketName: "eyelab_prod"
+                      bucketRegion: "ap-northeast-2"
+                      createdDate: "2025-01-01T07:00Z"
+                      updatedDate: "2025-02-06T07:00Z"
                     - id: 2
                       username: "exampleUser2"
                       email: "user2@catascan.com"
                       institutionName: "Cataract Eye Center"
+                      bucketName: "eyelab-bucket"
+                      bucketRegion: "ap-southeast-1"
+                      createdDate: "2023-01-01T07:00Z"
+                      updatedDate: "2023-12-25T14:30Z"
                 withPagination:
                   summary: "Response with pagination"
                   description: "when page and size parameter are given"
@@ -283,10 +293,18 @@ paths:
                         username: "exampleUser1"
                         email: "user1@catascan.com"
                         institutionName: "Cataract Eye Center"
+                        bucketName: "eyelab_prod"
+                        bucketRegion: "ap-northeast-2"
+                        createdDate: "2025-01-01T07:00Z"
+                        updatedDate: "2025-02-06T07:00Z"
                       - id: 2
                         username: "exampleUser2"
                         email: "user2@catascan.com"
                         institutionName: "Cataract Eye Center"
+                        bucketName: "eyelab-bucket"
+                        bucketRegion: "ap-southeast-1"
+                        createdDate: "2023-01-01T07:00Z"
+                        updatedDate: "2023-12-25T14:30Z"
         "400":
           description: "Invalid query parameters"
           content:
@@ -312,8 +330,8 @@ paths:
     patch:
       summary: "PATCH user"
       operationId: "updateUserData"
-      security: 
-        -  PasetoAuth: ["bearer"]
+      security:
+        - PasetoAuth: [ ]
       requestBody:
         content:
           application/json:
@@ -370,7 +388,7 @@ paths:
       summary: "GET user"
       operationId: "getUserData"
       security:
-        - PasetoAuth: ["bearer"]
+        - PasetoAuth: [ ]
       description: "get current user data"
       responses:
         "200":
@@ -379,12 +397,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/UserResponseDto"
-  /admin/institution-list:
+  /admin/institutions:
     get:
       summary: "GET admin/institutions"
       operationId: "getInstitutionList"
       security:
-        - PasetoAuth: ["bearer"]
+        - PasetoAuth: [ ]
       description: "retrieve a list of institutions"
       parameters:
         - name: "page"
@@ -438,13 +456,99 @@ paths:
               schema:
                 example:
                   message: "forbidden"
-
-  /admin/patient-list:
+  /admin/institutions/data:
+    post:
+      summary: "POST admin/institutions/data"
+      operationId: "get Institution Image Data"
+      parameters:
+        - name: "institutionId"
+          in: "query"
+          required: false
+          schema:
+            type: "array"
+            items:
+              type: "integer"
+              format: "int32"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                type: "array"
+                items:
+                  type: "string"
+                  format: "byte"
+  /admin/buckets:
     get:
-      summary: "GET admin/patient-list"
+      summary: "GET admin/buckets"
+      operationId: "getBucketList"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                type: "array"
+                items:
+                  $ref: "#/components/schemas/ImageStorageResponseDto"
+    post:
+      summary: "POST admin/buckets"
+      operationId: "createBucket"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ImageStorageCreateRequestDto"
+        required: true
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ImageStorageResponseDto"
+  /admin/buckets/{bucketId}:
+    get:
+      summary: "GET admin/buckets/{bucketId}"
+      operationId: "getBucketById"
+      parameters:
+        - name: "bucketId"
+          in: "path"
+          required: true
+          schema:
+            type: "integer"
+            format: "int32"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ImageStorageResponseDto"
+    delete:
+      summary: "DELETE admin/buckets/{bucketId}"
+      operationId: "deleteImageStorageRecord"
+      parameters:
+        - name: "bucketId"
+          in: "path"
+          required: true
+          schema:
+            type: "integer"
+            format: "int32"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+  /admin/patients:
+    get:
+      summary: "GET admin/patients"
       operationId: "getPatientListByAdmin"
       security:
-        - PasetoAuth: ["bearer"]
+        - PasetoAuth: [ ]
       parameters:
         - name: "q"
           in: "query"
@@ -538,24 +642,24 @@ paths:
                 withoutPagination:
                   description: when  `page` and `size` parameters are NOT given
                   value:
-                    - institutionName: "New Vision Center"
+                    - institutionId: 3
+                      institutionName: "New Vision Center"
                       patientId: 1
-                      name: "Vikram Singh"
+                      patientName: "Vikram Singh"
                       sex: "male"
                       dateOfBirth: "1985-08-08"
                       phoneNum: "9332211009"
                       age: 36
                       registrationDate: "2025-02-24"
-                      remarks: "new patient"
-                    - institutionName: "ABC Vision Center"
+                    - institutionId: 5,
+                      institutionName: "ABC Vision Center"
                       patientId: 1
-                      name: "Rohan Das"
+                      patientName: "Rohan Das"
                       sex: "other"
                       dateOfBirth: "1954-12-20"
                       phoneNum: "9349832339"
                       age: 36
                       registrationDate: "2024-11-01"
-                      remarks: "needs further observation"
                 withPagination:
                   description: when  `page` and `size` parameters are given
                   value:
@@ -565,7 +669,8 @@ paths:
                       totalElements: 60
                       pageSize: 2
                     data:
-                      - institutionName: "New Vision Center"
+                      - institutionId: 3
+                        institutionName: "New Vision Center"
                         patientId: 1
                         name: "Vikram Singh"
                         sex: "male"
@@ -573,8 +678,8 @@ paths:
                         phoneNum: "9332211009"
                         age: 36
                         registrationDate: "2025-02-24"
-                        remarks: "new patient"
-                      - institutionName: "ABC Vision Center"
+                      - institutionId: 5
+                        institutionName: "ABC Vision Center"
                         patientId: 32
                         name: "Rohan Das"
                         sex: "other"
@@ -582,13 +687,12 @@ paths:
                         phoneNum: "9349832339"
                         age: 36
                         registrationDate: "2024-11-01"
-                        remarks: "needs further observation"
-  /admin/institution/{institutionId}/patients/{patientId}:
+  /admin/institutions/{institutionId}/patients/{patientId}:
     get:
-      summary: "GET admin/institution/{institutionId}/patients/{patientId}"
-      operationId: "getPatientByAdmin"
+      summary: "GET admin/institutions/{institutionId}/patients/{patientId}"
+      operationId: "getInstitutionPatientsByAdmin"
       security:
-        - PasetoAuth: ["bearer"]
+        - PasetoAuth: [ ]
       parameters:
         - name: "institutionId"
           in: "path"
@@ -608,7 +712,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/FullPatientDataDto"
+                $ref: "#/components/schemas/PatientResponseDto"
         "404":
           description: "Patient Not Found"
           content:
@@ -617,10 +721,10 @@ paths:
                 example:
                   message: "patient not found"
     delete:
-      summary: "DELETE admin/institution/{institutionId}/patients/{patientId}"
+      summary: "DELETE admin/institutions/{institutionId}/patients/{patientId}"
       operationId: "deletePatientPermanently"
       security:
-        - PasetoAuth: ["bearer"]
+        - PasetoAuth: [ ]
       parameters:
         - name: "institutionId"
           in: "path"
@@ -650,11 +754,10 @@ paths:
                 example:
                   message: "patient not found"
     put:
-      summary: "PUT admin/institution/{institutionId}/patients/{patientId}"
-      operationId: "restorePatient"
+      summary: "PUT admin/institutions/{institutionId}/patients/{patientId}"
+      operationId: "recoverPatient"
       security:
-        - PasetoAuth: ["bearer"]
-      description: "restoring a patient data that the institution user deleted"
+        - PasetoAuth: [ ]
       parameters:
         - name: "institutionId"
           in: "path"
@@ -675,7 +778,7 @@ paths:
             application/json:
               schema:
                 example:
-                  message: "patient data successfully restored"
+                  message: "patient successfully recovered"
 
         "404":
           description: "Patient Not Found"
@@ -684,12 +787,12 @@ paths:
               schema:
                 example:
                   message: "patient not found"
-  /admin/report-list:
+  /admin/reports:
     get:
-      summary: "GET admin/report-list"
+      summary: "GET admin/reports"
       operationId: "getReportListFromDateRangeAdmin"
       security:
-        - PasetoAuth: ["bearer"]
+        - PasetoAuth: [ ]
       parameters:
         - name: "q"
           in: "query"
@@ -799,19 +902,13 @@ paths:
                         rightAiResult: "requiresAttention"
                         sex: "male"
                         linkStatus: 0
-  /admin/institution/{institutionId}/reports/{reportId}:
+  /admin/reports/{reportId}:
     get:
-      summary: "GET admin/institution/{institutionId}/reports/{reportId}"
+      summary: "GET admin/reports/{reportId}"
       operationId: "getDetailReport"
       security:
-        - PasetoAuth: ["bearer"]
+        - PasetoAuth: [ ]
       parameters:
-        - name: "institutionId"
-          in: "path"
-          required: true
-          schema:
-            type: integer
-            format: int32
         - name: "reportId"
           in: "path"
           required: true
@@ -833,17 +930,11 @@ paths:
                 example:
                   message: "report not found"
     delete:
-      summary: "DELETE admin/institution/{institutionId}/reports/{reportId}"
+      summary: "DELETE admin/reports/{reportId}"
       operationId: "deleteReport"
       security:
-        - PasetoAuth: ["bearer"]
+        - PasetoAuth: [ ]
       parameters:
-        - name: "institutionId"
-          in: "path"
-          required: true
-          schema:
-            type: integer
-            format: int32
         - name: "reportId"
           in: "path"
           required: true
@@ -870,7 +961,7 @@ paths:
       summary: "PUT patients/{patientId}/profile"
       operationId: "updatePatientProfile"
       security:
-        - PasetoAuth: ["bearer"]
+        - PasetoAuth: [ ]
       parameters:
         - name: "patientId"
           in: path
@@ -902,7 +993,7 @@ paths:
       summary: "POST patients/{patientId}/profile"
       operationId: "createPatientProfile"
       security:
-        - PasetoAuth: ["bearer"]
+        - PasetoAuth: [ ]
       parameters:
         - name: "patientId"
           in: path
@@ -927,7 +1018,7 @@ paths:
       summary: "DELETE patients/{patientId}/profile"
       operationId: "deletePatientProfile"
       security:
-        - PasetoAuth: ["bearer"]
+        - PasetoAuth: [ ]
       parameters:
         - name: "patientId"
           in: path
@@ -947,7 +1038,7 @@ paths:
       summary: "GET patients/{patientId}/profile"
       operationId: "getPatientProfiles"
       security:
-        - PasetoAuth: ["bearer"]
+        - PasetoAuth: [ ]
       parameters:
         - name: "patientId"
           in: path
@@ -967,7 +1058,7 @@ paths:
       summary: "PUT patients/{patientId}"
       operationId: "updatePatient"
       security:
-        - PasetoAuth: ["bearer"]
+        - PasetoAuth: [ ]
       parameters:
         - name: "patientId"
           in: path
@@ -995,37 +1086,11 @@ paths:
               schema:
                 example:
                   message: "patient not found or part of your institution"
-    patch:
-      summary: "PATCH patients/{patientId}"
-      operationId: "restorePatientByUser"
-      security:
-        - PasetoAuth: ["bearer"]
-      parameters:
-        - name: "patientId"
-          in: path
-          required: true
-          schema:
-            type: integer
-            format: int32
-      responses:
-        "200":
-          description: "OK"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/PatientResponseDto"
-        "404":
-          description: "Patient Not Found"
-          content:
-            application/json:
-              schema:
-                example:
-                  message: "patient not found or part of your institution or not deleted"                  
     delete:
       summary: "DELETE patients/{patientId}"
       operationId: "deletePatient"
       security:
-        - PasetoAuth: ["bearer"]
+        - PasetoAuth: [ ]
       parameters:
         - name: "patientId"
           in: path
@@ -1052,7 +1117,7 @@ paths:
       summary: "GET patients/{patientId}"
       operationId: "getPatient"
       security:
-        - PasetoAuth: ["bearer"]
+        - PasetoAuth: [ ]
       parameters:
         - name: "patientId"
           in: path
@@ -1079,7 +1144,7 @@ paths:
       summary: "POST patients"
       operationId: "createPatient"
       security:
-        - PasetoAuth: ["bearer"]
+        - PasetoAuth: [ ]
       requestBody:
         content:
           application/json:
@@ -1105,7 +1170,7 @@ paths:
       summary: "GET patients"
       operationId: "getPatientList"
       security:
-        - PasetoAuth: ["bearer"]
+        - PasetoAuth: [ ]
       parameters:
         - name: "q"
           in: "query"
@@ -1121,10 +1186,11 @@ paths:
             type: string
             format: "date"
             example: "2021-01-20"
+            default: "1900-01-01"
         - name: "endDate"
           in: "query"
           required: false
-          description: "the date of patient profile created"
+          description: "the date of patient profile created(default=current date)"
           schema:
             type: string
             format: "date"
@@ -1149,12 +1215,14 @@ paths:
           description: "only accepts 'name', 'dateOfBirth', 'createdAt', or 'updatedAt' as 'sortBy', default=createdAt"
           schema:
             type: string
+            default: "updatedAt"
         - name: "sortDir"
           in: "query"
           required: false
           description: "default=desc"
           schema:
             type: string
+            default: "desc"
         - name: "dataStatus"
           in: "query"
           required: false
@@ -1243,7 +1311,7 @@ paths:
       summary: "GET patients/export"
       operationId: "getPatientListAsCsv"
       security:
-        - PasetoAuth: ["bearer"]
+        - PasetoAuth: [ ]
       parameters:
         - name: "q"
           in: "query"
@@ -1350,7 +1418,7 @@ paths:
       summary: "GET patients/data/{patientId}"
       operationId: "getFullPatientData"
       security:
-        - PasetoAuth: ["bearer"]
+        - PasetoAuth: [ ]
       parameters:
         - name: "patientId"
           in: path
@@ -1377,7 +1445,7 @@ paths:
       summary: "PUT reports/{reportId}"
       operationId: "updateReportById"
       security:
-        - PasetoAuth: ["bearer"]
+        - PasetoAuth: [ ]
       parameters:
         - name: "reportId"
           in: path
@@ -1409,7 +1477,7 @@ paths:
       summary: "DELETE reports/{reportId}"
       operationId: "deleteReportById"
       security:
-        - PasetoAuth: ["bearer"]
+        - PasetoAuth: [ ]
       parameters:
         - name: "reportId"
           in: path
@@ -1437,7 +1505,7 @@ paths:
       summary: "GET reports/{reportId}"
       operationId: "getReportsById"
       security:
-        - PasetoAuth: ["bearer"]
+        - PasetoAuth: [ ]
       parameters:
         - name: "reportId"
           in: path
@@ -1464,7 +1532,7 @@ paths:
       summary: "POST reports"
       operationId: "uploadReport"
       security:
-        - PasetoAuth: ["bearer"]
+        - PasetoAuth: [ ]
       requestBody:
         content:
           multipart/form-data:
@@ -1484,16 +1552,16 @@ paths:
                   type: string
                   description: "The ID associated with the images in the form of name=gender(in 'm', 'f', or 'o')"
                   example: "john doe=m"
-                  required: []
+                  required: true
                 leftAiResult:
                   type: string
                   description: "AI result for the left eye image (only accepts 'lowRisk', 'requiresAttention', 'ungradable')"
                 rightAiResult:
                   type: string
                   description: "AI result for the right eye image (only accepts 'lowRisk', 'requiresAttention', 'ungradable')"
-                remarks:
+                comments:
                   type: string
-                  description: "Remarks about the report"
+                  description: "Comments about the report"
 
       responses:
         "200":
@@ -1507,7 +1575,7 @@ paths:
       summary: "GET reports"
       operationId: "getReportListFromDateRange"
       security:
-        - PasetoAuth: ["bearer"]
+        - PasetoAuth: [ ]
       parameters:
         - name: "q"
           in: "query"
@@ -1605,7 +1673,7 @@ paths:
       summary: "POST reports/{reportId}/link-patient/{patientId}"
       operationId: "linkReportWithPatient"
       security:
-        - PasetoAuth: ["bearer"]
+        - PasetoAuth: [ ]
       parameters:
         - name: "reportId"
           in: path
@@ -1638,7 +1706,7 @@ paths:
       summary: "POST reports/{reportId}/unlink-patient"
       operationId: "unlinkReportWithPatient"
       security:
-        - PasetoAuth: ["bearer"]
+        - PasetoAuth: [ ]
       parameters:
         - name: "reportId"
           in: path
@@ -1662,7 +1730,7 @@ paths:
       summary: "GET reports/patient/{patientId}"
       operationId: "getReportByPatient"
       security:
-        - PasetoAuth: ["bearer"]
+        - PasetoAuth: [ ]
       parameters:
         - name: "patientId"
           in: path
@@ -1742,7 +1810,7 @@ paths:
       summary: "GET reports/{reportId}/candidates-list"
       operationId: "getReportCandidatePatients"
       security:
-        - PasetoAuth: ["bearer"]
+        - PasetoAuth: [ ]
       parameters:
         - name: "reportId"
           in: path
@@ -1752,6 +1820,11 @@ paths:
             format: int64
         - name: "q"
           in: "query"
+          required: false
+          schema:
+            type: string
+        - name: "sex"
+          in: "sex"
           required: false
           schema:
             type: string
@@ -1848,7 +1921,7 @@ paths:
       summary: "GET reports/unlinked-num"
       operationId: "getUnlinkedReportsNum"
       security:
-        - PasetoAuth: ["bearer"]
+        - PasetoAuth: [ ]
       responses:
         "200":
           description: "OK"
@@ -1863,7 +1936,7 @@ paths:
       summary: "GET reports/{reportId}/comments"
       operationId: "getReportComments"
       security:
-        - PasetoAuth: ["bearer"]
+        - PasetoAuth: [ ]
       parameters:
         - name: "reportId"
           in: "path"
@@ -1882,7 +1955,7 @@ paths:
       summary: "PUT reports/{reportId}/comments"
       operationId: "putReportComments"
       security:
-        - PasetoAuth: ["bearer"]
+        - PasetoAuth: [ ]
       parameters:
         - name: "reportId"
           in: "path"
@@ -1945,8 +2018,6 @@ paths:
     post:
       summary: "POST auth/logout"
       operationId: "logout"
-      security:
-        - PasetoAuth: ["bearer"]
       parameters:
         - name: "Authorization"
           in: "header"
@@ -1974,8 +2045,6 @@ paths:
     post:
       summary: "POST auth/refresh"
       operationId: "refreshAccessToken"
-      security:
-        - PasetoAuth: ["bearer"]
       requestBody:
         content:
           application/json:
@@ -2044,6 +2113,11 @@ components:
         institutionName:
           type: string
           example: "Center"
+          nullable: true
+        bucketName:
+          type: string
+          example: "eyelab-bucket"
+          nullable: true
 
     UserResponseDto:
       type: object
@@ -2064,6 +2138,12 @@ components:
         institutionName:
           type: string
           example: "Cataract Eye Center"
+        bucketName:
+          type: string
+          example: "eyelab-bucket"
+        bucketRegion:
+          type: string
+          example: "ap-northeast-2"
         createdDate:
           type: string
           format: date-time
@@ -2091,6 +2171,10 @@ components:
         institutionName:
           type: string
           example: "Eye Care Institute"
+        bucketName:
+          type: string
+          example: "eyelab-bucket"
+          nullable: true
 
     ErrorResponseDto:
       type: object
@@ -2109,7 +2193,7 @@ components:
           type: integer
           format: int32
           example: 123
-        name:
+        patientName:
           type: string
           example: "John Doe"
         sex:
@@ -2237,9 +2321,12 @@ components:
     UpdatePatientRequestDto:
       type: object
       properties:
-        name:
+        patientName:
           type: string
           example: "John Doe"
+        sex:
+          type: string
+          example: "female"
         dateOfBirth:
           type: string
           example: "1980-05-15"
@@ -2253,7 +2340,7 @@ components:
     CreatePatientRequestDto:
       type: object
       properties:
-        name:
+        patientName:
           type: string
           example: "Jane Smith"
         sex:
@@ -2398,10 +2485,11 @@ components:
       properties:
         reportId:
           type: integer
+          format: int32
           example: 789123
         leftImageFilePath:
           type: string
-          example: "https://s3-bucket.com/images/right_eye.png"
+          example: "https://s3-bucket.com/images/left_eye.jpg"
         rightImageFilePath:
           type: string
           example: "https://s3-bucket.com/images/right_eye.png"
@@ -2414,7 +2502,7 @@ components:
         rightAiResult:
           type: string
           example: "requiresAttention"
-        imageIdentifier:
+        imageId:
           type: string
           example: "Sunil Patel=m"
 
@@ -2495,3 +2583,33 @@ components:
         refreshToken:
           type: string
           example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJhcHBsaWNhdGl..."
+    StreamingResponseBody:
+      type: "object"
+      properties: { }
+    ImageStorageResponseDto:
+      type: "object"
+      properties:
+        imageStorageId:
+          type: "integer"
+          format: "int32"
+          nullable: true
+          example: 3
+        bucketName:
+          type: "string"
+          nullable: true
+          example: "cataract-image-bucket"
+        bucketRegion:
+          type: "string"
+          nullable: true
+          example: "ap-northeast-1"
+    ImageStorageCreateRequestDto:
+      type: "object"
+      properties:
+        bucketName:
+          type: "string"
+          nullable: true
+          example: "cataract-image-bucket"
+        bucketRegion:
+          type: "string"
+          nullable: true
+          example: "ap-northeast-1"

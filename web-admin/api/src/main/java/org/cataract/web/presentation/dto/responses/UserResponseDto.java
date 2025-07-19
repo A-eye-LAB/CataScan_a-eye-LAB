@@ -15,6 +15,8 @@ public class UserResponseDto implements ResponseDto {
 
     private String role;
     private String institutionName;
+    private String bucketName;
+    private String bucketRegion;
     private String createdDate;
     private String updatedDate;
 
@@ -26,6 +28,8 @@ public class UserResponseDto implements ResponseDto {
         userResponseDto.email = user.getEmail();
         userResponseDto.role = user.getRole().toString();
         userResponseDto.institutionName = user.getInstitution().getName();
+        userResponseDto.bucketName = user.getInstitution().getImageStorage().getBucketName();
+        userResponseDto.bucketRegion = user.getInstitution().getImageStorage().getBucketRegion();
         userResponseDto.createdDate = LocalDateTime.now().toString();
         userResponseDto.updatedDate = LocalDateTime.now().toString();
         if (user.getCreatedAt() != null) {
