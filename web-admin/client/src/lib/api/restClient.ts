@@ -189,6 +189,24 @@ const restClient = {
 
         return extractEssentialDataFromResponse<T>(response);
     },
+    postBlob: async (url: string, params = {}, config = {}) => {
+        const authHeaders = await getAuthHeaders(url);
+        const response = await fetch(`${BASE_URL}${url}`, {
+            ...defaultConfig,
+            method: 'POST',
+            headers: authHeaders,
+            body: JSON.stringify(params),
+            ...config,
+        });
+
+        if (!validateStatus(response.status)) {
+            throw new Error(`Request failed with status ${response.status}`);
+        }
+
+        const blob = await response.blob();
+
+        return { status: response.status, data: blob };
+    },
 };
 
 export default restClient;

@@ -1,17 +1,17 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, FormProvider } from 'react-hook-form';
 import { z } from 'zod';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useSearchParams } from 'next/navigation';
 import HealthTab from '@/components/patients/patient-information-dialog/health-tab';
 import ReportsTab from '@/components/patients/reports-tab';
 import usePatientHealthInfo from '@/hooks/api/use-patient-health-info';
 import Error from '@/components/common/error';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Form } from '@/components/ui/form';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
 import { DEFAULT_VALUES } from '@/lib/constants';
@@ -24,9 +24,13 @@ type TPatientDetailTabsArea = {
 
 function PatientDetailTabsArea(props: TPatientDetailTabsArea) {
     const { patientId } = props;
+    const searchParams = useSearchParams();
+    const institutionId = searchParams.get('institutionId');
 
-    const { healthInfo, isLoading, error, mutate } =
-        usePatientHealthInfo(patientId);
+    const { healthInfo, isLoading, error, mutate } = usePatientHealthInfo(
+        patientId,
+        institutionId as string
+    );
 
     const patientHealthForm = useForm<z.infer<typeof patientHealthInfoSchema>>({
         resolver: zodResolver(patientHealthInfoSchema),
@@ -60,7 +64,7 @@ function PatientDetailTabsArea(props: TPatientDetailTabsArea) {
     }, [healthInfo, patientHealthForm]);
 
     return (
-        <div className={'border border-[#d9d9d9] p-5'}>
+        <div className={'border border-[#d9d9d9] p-5 rounded-md'}>
             <Tabs defaultValue="health">
                 <TabsList>
                     <TabsTrigger value="health">Health Information</TabsTrigger>
@@ -73,23 +77,29 @@ function PatientDetailTabsArea(props: TPatientDetailTabsArea) {
                     ) : isLoading ? (
                         <Loader2 className={'animate-spin'} />
                     ) : (
-                        <Form {...patientHealthForm}>
+                        <FormProvider {...patientHealthForm}>
                             <form
                                 onSubmit={patientHealthForm.handleSubmit(
                                     onSubmit
                                 )}>
-                                <HealthTab form={patientHealthForm} />
-                                <Button
-                                    type={'submit'}
-                                    disabled={isFormSubmitting}>
-                                    {isFormSubmitting ? (
-                                        <Loader2 className={'animate-spin'} />
-                                    ) : (
-                                        'Save'
-                                    )}
-                                </Button>
+                                <HealthTab />
+                                <div className="flex justify-center mt-3">
+                                    <Button
+                                        variant={'catascan'}
+                                        size={'lg'}
+                                        type={'submit'}
+                                        disabled={isFormSubmitting}>
+                                        {isFormSubmitting ? (
+                                            <Loader2
+                                                className={'animate-spin'}
+                                            />
+                                        ) : (
+                                            'Save'
+                                        )}
+                                    </Button>
+                                </div>
                             </form>
-                        </Form>
+                        </FormProvider>
                     )}
                 </TabsContent>
                 <TabsContent value="reports" className={'w-full'}>

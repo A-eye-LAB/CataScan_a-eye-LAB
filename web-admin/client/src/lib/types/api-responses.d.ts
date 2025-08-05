@@ -6,6 +6,7 @@ import {
     Report,
     ReportDetail,
     UserAccount,
+    Institution,
 } from '@/lib/types/schema';
 
 declare global {
@@ -51,13 +52,9 @@ declare global {
 
         interface GetReportsById extends ReportDetail {}
 
-        interface GetReportByPatient {
-            data: ReportDetail[];
-        }
+        type GetReportByPatient = ReportDetail[];
 
-        interface GetReportCandidatePatients {
-            data: RegisteredPatient[];
-        }
+        type GetReportCandidatePatients = RegisteredPatient[];
 
         interface GetReportComments {
             reportId: number;
@@ -72,5 +69,7 @@ declare global {
         }
 
         type GetPatientListAsCSV = string;
+
+        type GetAdminInstitutionList = Institution[];
     }
 }

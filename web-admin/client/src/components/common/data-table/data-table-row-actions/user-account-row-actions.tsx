@@ -6,7 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import AccountDialog from '@/components/accounts/account-dialog';
 import useAccountData from '@/hooks/api/use-account-data';
 import useUserManagement from '@/hooks/use-user-management';
-import DeleteDialog from '@/components/common/alert-dialog/delete-dialog';
+import BaseAlertDialog from '@/components/common/alert-dialog/base-alert-dialog';
 import ModifyActionRow from '@/components/common/data-table/data-table-row-actions/modify-action-dropdown-menu';
 import { DEFAULT_VALUES } from '@/lib/constants';
 import { UserAccountForm, userAccountFormSchema } from '@/lib/types/schema';
@@ -61,14 +61,18 @@ function UserAccountRowActions(props: TUserAccountRowActionsProps) {
                 setIsOpenDeleteDialog={setIsOpenDeleteDialog}
             />
 
-            <DeleteDialog
+            <BaseAlertDialog
                 isOpenDialog={isOpenDeleteDialog}
                 setIsOpenDialog={setIsOpenDeleteDialog}
-                onDelete={handleDelete}
+                onConfirm={handleDelete}
                 onCancel={() => {
                     setIsOpenDeleteDialog(false);
                 }}
                 title={'Delete User Account'}
+                confirmButtonText="Delete"
+                description={
+                    'This action cannot be undone.\nDo you want to proceed?'
+                }
             />
             <AccountDialog
                 mode={'Edit'}

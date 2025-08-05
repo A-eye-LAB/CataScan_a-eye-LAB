@@ -72,19 +72,10 @@ const apiManager = {
         const nonMedicalInfo = {
             remarks: healthInfo.remarks,
         };
-        const additionalMedicalInfo = {
-            dontKnow: healthInfo.dontKnow,
-            systolicBp: healthInfo.systolicBp,
-            diastolicBp: healthInfo.diastolicBp,
-            rightEyeVision: healthInfo.rightEyeVision,
-            leftEyeVision: healthInfo.leftEyeVision,
-            bloodSugarLevel: healthInfo.bloodSugarLevel,
-            visitDate: healthInfo.visitDate,
-        };
 
         const params = {
             ...nonMedicalInfo,
-            additionalMedicalInfo: { ...additionalMedicalInfo },
+            healthInfo,
             patientId,
         };
 
@@ -100,6 +91,10 @@ const apiManager = {
         );
     },
 
+    restorePatient: (patientId: number) => {
+        return restClient.patch(apiUrl.getPatientsPatientIdUrl(`${patientId}`))
+    },
+
     downloadPatientsCSV: (params: ApiRequests.GetPatientList) => {
         return restClient.get<ApiResponses.GetPatientListAsCSV>(
             apiUrl.getPatientsExportUrl(),
@@ -108,14 +103,6 @@ const apiManager = {
     },
 
     // User
-    getUserList: () => {
-        const params = {};
-
-        return restClient.get<ApiResponses.GetUserList>(
-            apiUrl.getAdminUserListUrl(),
-            params
-        );
-    },
     createUser: (props: ApiRequests.CreateUser) => {
         const params = { ...props };
 
@@ -206,6 +193,20 @@ const apiManager = {
             apiUrl.getReportsReportIdCommentsUrl(reportId),
             params
         );
+    },
+    // downloadFileStream: (endpoint: string, institutionId?: string) => {
+    //     const params = {institutionId}
+
+    //     return restClient.postBlob(endpoint, params);
+    // },
+    downloadReportImages: (institutionId?: string) => {
+        const params = { institutionId }
+        
+        if (institutionId === 'all') {
+            delete params.institutionId;
+        }
+
+        return restClient.postBlob(apiUrl.getAdminInstitutionsData2Url(), params);
     },
 };
 export default apiManager;

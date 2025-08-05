@@ -51,7 +51,7 @@ function AppSidebar() {
     const isMobile = useIsMobile();
 
     return (
-        <Sidebar collapsible={'none'}>
+        <Sidebar>
             <SidebarHeader
                 className={'bg-background py-4 px-3 hover:cursor-pointer'}
                 onClick={() => {

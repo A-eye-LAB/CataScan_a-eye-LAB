@@ -1,12 +1,8 @@
-import { z } from 'zod';
 import { Badge } from '@/components/ui/badge';
-import { aiResultSchema } from '@/lib/types/schema';
+import { AiResult } from '@/lib/types/schema';
 
 const renderUtil = {
-    renderAiResultBadge: (
-        aiValue: z.infer<typeof aiResultSchema> | string,
-        className?: string
-    ) => {
+    renderAiResultBadge: (aiValue: AiResult, className?: string) => {
         if (aiValue === 'lowRisk') {
             return (
                 <Badge
@@ -15,7 +11,7 @@ const renderUtil = {
                     Low Risk
                 </Badge>
             );
-        } else if (aiValue === 'unknown') {
+        } else if (aiValue === 'ungradable') {
             return (
                 <Badge
                     className={`rounded-full ${className ?? ''}`}

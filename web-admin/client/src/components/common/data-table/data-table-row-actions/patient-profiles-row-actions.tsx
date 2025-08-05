@@ -1,31 +1,36 @@
 'use client';
 
 import React, { startTransition, useEffect, useState } from 'react';
-import { toast } from 'sonner';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import PatientInformationDialog from '@/components/patients/patient-information-dialog';
 import usePatient from '@/hooks/api/use-patient';
 import { usePatientManagement } from '@/hooks/use-patient-management';
 import { usePatientFilter } from '@/context/patient-filter-context';
-import DeleteDialog from '@/components/common/alert-dialog/delete-dialog';
 import ModifyActionRow from '@/components/common/data-table/data-table-row-actions/modify-action-dropdown-menu';
+import BaseAlertDialog from '@/components/common/alert-dialog/base-alert-dialog';
 import { PatientDetail, patientDetailSchema } from '@/lib/types/schema';
 import { DEFAULT_VALUES, PATIENT } from '@/lib/constants';
 
 type TPatientProfilesRowActionsProps = {
     patientId: number;
+    registrationDate: string;
+    institutionId?: number;
 };
 
 function PatientProfilesRowActions(props: TPatientProfilesRowActionsProps) {
-    const { patientId } = props;
+    const { patientId, registrationDate, institutionId } = props;
 
     const { filters } = usePatientFilter();
 
     const [isOpenEditDialog, setIsOpenEditDialog] = useState(false);
     const [isOpenDeleteDialog, setIsOpenDeleteDialog] = useState(false);
 
-    const { patient, mutate } = usePatient(`${patientId}`, isOpenEditDialog);
+    const { patient, mutate } = usePatient(
+        `${patientId}`,
+        institutionId ? `${institutionId}` : undefined,
+        isOpenEditDialog
+    );
 
     const patientForm = useForm<PatientDetail>({
         resolver: zodResolver(patientDetailSchema),
@@ -39,7 +44,6 @@ function PatientProfilesRowActions(props: TPatientProfilesRowActionsProps) {
         {
             onDeleteSuccess: async () => {
                 setIsOpenDeleteDialog(false);
-                await mutate();
                 startTransition(() => {
                     window.location.reload();
                 });
@@ -56,15 +60,11 @@ function PatientProfilesRowActions(props: TPatientProfilesRowActionsProps) {
     );
 
     const handleUpdate = async () => {
-        if (patient?.registrationDate) {
-            await updatePatient(
-                patientId,
-                patientForm.getValues(),
-                patient.registrationDate
-            );
-        } else {
-            toast('Error: patient.registrationDate is undefined');
-        }
+        await updatePatient(
+            patientId,
+            patientForm.getValues(),
+            registrationDate
+        );
     };
 
     const handleDelete = async () => {
@@ -87,33 +87,36 @@ function PatientProfilesRowActions(props: TPatientProfilesRowActionsProps) {
         }
     }, [isOpenEditDialog, patient, patientForm]);
 
-    return (
-        <>
-            <ModifyActionRow
-                setIsOpenEditDialog={setIsOpenEditDialog}
-                setIsOpenDeleteDialog={setIsOpenDeleteDialog}
-                isEditRender={
-                    filters?.dataStatus !== PATIENT.IS_DELETED_PROFILES_CHECKED
-                }
-            />
+    if (filters?.dataStatus === PATIENT.IS_DELETED_PROFILES_CHECKED) {
+        return <></>;
+    } else {
+        return (
+            <>
+                <ModifyActionRow
+                    setIsOpenEditDialog={setIsOpenEditDialog}
+                    setIsOpenDeleteDialog={setIsOpenDeleteDialog}
+                />
 
-            <DeleteDialog
-                isOpenDialog={isOpenDeleteDialog}
-                setIsOpenDialog={setIsOpenDeleteDialog}
-                onDelete={handleDelete}
-                title={'Delete Patient Profile'}
-            />
+                <BaseAlertDialog
+                    isOpenDialog={isOpenDeleteDialog}
+                    setIsOpenDialog={setIsOpenDeleteDialog}
+                    onConfirm={handleDelete}
+                    title={'Delete Patient Profile'}
+                    confirmButtonText="Delete"
+                    description="This action cannot be undone.\nDo you want to proceed?"
+                />
 
-            <PatientInformationDialog
-                mode="Edit"
-                form={patientForm}
-                onSubmit={handleUpdate}
-                isSubmitting={isSubmitting}
-                isOpenDialog={isOpenEditDialog}
-                setIsOpenDialog={setIsOpenEditDialog}
-            />
-        </>
-    );
+                <PatientInformationDialog
+                    mode="Edit"
+                    form={patientForm}
+                    onSubmit={handleUpdate}
+                    isSubmitting={isSubmitting}
+                    isOpenDialog={isOpenEditDialog}
+                    setIsOpenDialog={setIsOpenEditDialog}
+                />
+            </>
+        );
+    }
 }
 
 export default PatientProfilesRowActions;

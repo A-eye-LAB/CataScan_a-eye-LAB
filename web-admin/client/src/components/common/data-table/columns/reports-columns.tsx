@@ -4,6 +4,7 @@ import { DataTableColumnHeader } from '@/components/common/data-table/data-table
 import { Checkbox } from '@/components/ui/checkbox';
 import { Report } from '@/lib/types/schema';
 import renderUtil from '@/lib/utils/renderUtils';
+import dateUtil from '@/lib/utils/date';
 
 const reportsColumns: ColumnDef<Report>[] = [
     {
@@ -28,6 +29,9 @@ const reportsColumns: ColumnDef<Report>[] = [
                     onCheckedChange={(value) => row.toggleSelected(!!value)}
                     aria-label="Select row"
                     className="translate-y-[2px] "
+                    onClick={(event) => {
+                        event.stopPropagation();
+                    }}
                 />
             </div>
         ),
@@ -49,7 +53,11 @@ const reportsColumns: ColumnDef<Report>[] = [
             <DataTableColumnHeader column={column} title="Scan Date" />
         ),
         cell: ({ row }) => {
-            return <span>{row.getValue('scanDate')}</span>;
+            return (
+                <span>
+                    {dateUtil.formatUTCToLocalString(row.getValue('scanDate'))}
+                </span>
+            );
         },
         enableSorting: true,
         enableHiding: false,
@@ -61,12 +69,12 @@ const reportsColumns: ColumnDef<Report>[] = [
         ),
         cell: ({ row }) => {
             return (
-                <span>
+                <div className="min-w-[140px]">
                     {renderUtil.renderAiResultBadge(
                         row.getValue('aiResult'),
                         'rounded-full'
                     )}
-                </span>
+                </div>
             );
         },
         filterFn: (row, id, value) => {

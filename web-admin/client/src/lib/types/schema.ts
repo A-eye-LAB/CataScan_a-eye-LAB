@@ -53,7 +53,7 @@ export const patientHealthInfoSchema = commonPatientHealthInfoSchema.extend({
 export const sexSchema = z.enum(['male', 'female', 'other']);
 
 export const patientSchema = z.object({
-    name: z.string().min(1, 'Please type profile name'),
+    patientName: z.string().min(1, 'Please type profile name'),
     sex: sexSchema,
     dateOfBirth: z.date(),
     phoneNum: z.string(),
@@ -65,9 +65,11 @@ export const patientDetailSchema = patientSchema.extend({
 
 export const registeredPatientSchema = patientSchema.extend({
     age: z.number(),
-    patientPk: z.number(),
+    // patientPk: z.number(),
     patientId: z.number(),
     registrationDate: z.string(),
+    institutionId: z.number(),
+    institutionName: z.string(),
 });
 
 const reportBaseSchema = z.object({
@@ -75,14 +77,7 @@ const reportBaseSchema = z.object({
     scanDate: z.string(),
 });
 
-// TODO: Check type
 export const aiResultSchema = z.enum([
-    'Abnormal',
-    'Normal',
-    'Requires Attention',
-    'unknown',
-    'EyeStatus.normal',
-    'EyeStatus.abnormal',
     'lowRisk',
     'requiresAttention',
     'ungradable',
@@ -118,6 +113,13 @@ export const reportPatientsSchema = z.object({
     status: z.enum(['linked', 'unlinked']),
 });
 
+export const institutionSchema = z.object({
+    institutionId: z.number().int(),
+    institutionName: z.string(),
+    address: z.string(),
+    createdDate: z.string(),
+});
+
 export type UserAccount = z.infer<typeof userAccountSchema>;
 export type UserAccountForm = z.infer<typeof userAccountFormSchema>;
 export type RegisteredUserAccount = z.infer<typeof registeredUserAccountSchema>;
@@ -131,3 +133,5 @@ export type HealthInfo = z.infer<typeof patientHealthInfoSchema>;
 export type commonPatientHealthInfo = z.infer<
     typeof commonPatientHealthInfoSchema
 >;
+export type Institution = z.infer<typeof institutionSchema>;
+export type AiResult = z.infer<typeof aiResultSchema>;

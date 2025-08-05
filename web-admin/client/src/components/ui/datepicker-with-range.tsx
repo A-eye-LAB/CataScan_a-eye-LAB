@@ -63,6 +63,7 @@ export function DatePickerWithRange(props: IDatePickerWithRangeProps) {
                             }
                         }}
                         numberOfMonths={2}
+                        captionLayout="dropdown"
                     />
                 </PopoverContent>
             </Popover>

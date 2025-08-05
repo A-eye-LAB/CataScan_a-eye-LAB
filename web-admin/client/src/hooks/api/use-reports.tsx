@@ -1,5 +1,6 @@
 import useSWR from 'swr';
 import { FilterState } from '@/hooks/use-report-table-filters';
+import useRoleBasedUrl from '@/hooks/api/use-role-based-url';
 import apiUrl from '@/lib/api/apiUrl';
 import fetcher from '@/lib/api/fetcher';
 
@@ -15,6 +16,11 @@ function useReports(props: TUserReportsProps) {
     const { startDate, endDate } = props;
     const params = { ...props };
 
+    const requestUrl = useRoleBasedUrl({
+        adminUrl: apiUrl.getAdminReportsUrl(),
+        userUrl: apiUrl.getReportsUrl(),
+    });
+
     if (params.status === 'all') {
         delete params.status;
     }
@@ -22,8 +28,6 @@ function useReports(props: TUserReportsProps) {
     if (params.sex === 'all') {
         delete params.sex;
     }
-
-    const requestUrl = apiUrl.getReportsUrl();
 
     const { data, isLoading, error, mutate } = useSWR<
         ApiResponses.GetReportListFromDateRange[]

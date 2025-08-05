@@ -1,5 +1,5 @@
 import React from 'react';
-import { Controller, UseFormReturn } from 'react-hook-form';
+import { Controller, UseFormReturn, FormProvider } from 'react-hook-form';
 import { Loader2 } from 'lucide-react';
 import AutocompleteInput from '@/components/common/input/autocomplete-input';
 import {
@@ -13,7 +13,6 @@ import {
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import {
-    Form,
     FormControl,
     FormField,
     FormItem,
@@ -50,7 +49,7 @@ function AccountDialog(props: TEditUserDialogProps) {
                 setIsOpenDialog(!isOpenDialog);
             }}>
             <AlertDialogContent>
-                <Form {...form}>
+                <FormProvider {...form}>
                     <form>
                         <AlertDialogHeader>
                             <AlertDialogTitle
@@ -203,7 +202,7 @@ function AccountDialog(props: TEditUserDialogProps) {
                             </AlertDialogAction>
                         </AlertDialogFooter>
                     </form>
-                </Form>
+                </FormProvider>
             </AlertDialogContent>
         </AlertDialog>
     );

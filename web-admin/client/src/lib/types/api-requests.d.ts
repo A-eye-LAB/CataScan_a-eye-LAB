@@ -40,7 +40,7 @@ declare global {
         }
 
         interface CreatePatient {
-            name: string;
+            patientName: string;
             sex: string;
             phoneNum: string;
             // registrationDate: string; // date-time
@@ -85,6 +85,7 @@ declare global {
             startDate?: string; //"2014-04-29",
             endDate?: string; // "2025-10-29",
             dataStatus?: 0 | 1;
+            institution?: string[];
         }
 
         interface getFullPatientData {
@@ -94,7 +95,7 @@ declare global {
         interface UpdatePatientProfile extends HealthInfo {}
 
         interface UpdatePatient {
-            name: string;
+            patientName: string;
             dateOfBirth: Date;
             phoneNum: string;
             registrationDate: Date;
@@ -107,5 +108,7 @@ declare global {
                 ReportSortOption {
             linkStatus?: 0 | 1;
         }
+
+        interface GetAdminInstitutionList extends Pagination {}
     }
 }

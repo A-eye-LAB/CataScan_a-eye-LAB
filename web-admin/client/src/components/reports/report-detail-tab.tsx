@@ -47,7 +47,7 @@ function ReportDetailTab(props: TReportDetailTabProps) {
                         </span>
                     </div>
                     <div>
-                        <span>
+                        <span className={report.status ? '' : 'invisible'}>
                             {renderUtil.renderAiResultBadge(
                                 report.status,
                                 'rounded-full text-lg'
@@ -63,7 +63,9 @@ function ReportDetailTab(props: TReportDetailTabProps) {
                                 height={291}
                             />
                         ) : (
-                            <></>
+                            <div className='w-[252px] h-[291px] border-2 border-#d9d9d9 rounded-md flex justify-center items-center'>
+                                <span className='text-muted-foreground'>No Data</span>
+                            </div>
                         )}
                     </div>
                     <div>
@@ -75,7 +77,9 @@ function ReportDetailTab(props: TReportDetailTabProps) {
                                     report.label === 'l' ? 'left' : 'right'
                                 );
                                 open();
-                            }}>
+                            }}
+                            disabled={!report}
+                            >
                             <Pencil2Icon />
                             Remark
                         </Button>

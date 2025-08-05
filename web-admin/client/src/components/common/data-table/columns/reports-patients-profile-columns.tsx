@@ -7,13 +7,13 @@ const reportsPatientProfilesColumns = (
     reportId: string
 ): ColumnDef<RegisteredPatient>[] => [
     {
-        accessorKey: 'name',
+        accessorKey: 'patientName',
         header: ({ column }) => (
             <DataTableColumnHeader column={column} title="Patient Name" />
         ),
         cell: ({ row }) => (
             <div className="h-[32px] flex items-center max-w-[293px]">
-                {row.getValue('name')}
+                {row.getValue('patientName')}
             </div>
         ),
         enableSorting: true,

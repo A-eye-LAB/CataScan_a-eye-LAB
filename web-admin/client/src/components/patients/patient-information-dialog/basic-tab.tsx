@@ -1,4 +1,4 @@
-import { UseFormReturn } from 'react-hook-form';
+import { useFormContext } from 'react-hook-form';
 import { CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import {
@@ -24,20 +24,14 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { PatientDetail } from '@/lib/types/schema';
-import { PATIENT } from '@/lib/constants';
 
-type TBasicTabProps = {
-    form: UseFormReturn<PatientDetail>;
-    mode: (typeof PATIENT.DIALOG_MODE)[number];
-};
-
-function BasicTab(props: TBasicTabProps) {
-    const { form } = props;
+function BasicTab() {
+    const form = useFormContext<PatientDetail>();
 
     return (
         <div className={'grid grid-cols-2 gap-x-4 gap-y-10 '}>
             <FormField
-                name={'name'}
+                name={'patientName'}
                 control={form.control}
                 render={({ field }) => (
                     <FormItem>
@@ -46,7 +40,7 @@ function BasicTab(props: TBasicTabProps) {
                             Profile Name *
                         </FormLabel>
                         <FormControl>
-                            <Input id={'name'} {...field} />
+                            <Input id={'patientName'} {...field} />
                         </FormControl>
                         <FormMessage />
                     </FormItem>
@@ -65,7 +59,6 @@ function BasicTab(props: TBasicTabProps) {
                                 Sex *
                             </FormLabel>
                             <Select
-                                // id={'sex'}
                                 onValueChange={field.onChange}
                                 defaultValue={field.value}
                                 value={field.value}>
@@ -132,10 +125,11 @@ function BasicTab(props: TBasicTabProps) {
                                                     )
                                                 );
 
-                                                field.onChange(utcDate); // 서버로 보낼 값
+                                                field.onChange(utcDate);
                                             }
                                         }}
                                         defaultMonth={field.value}
+                                        captionLayout="dropdown"
                                         initialFocus={true}
                                     />
                                 </PopoverContent>
@@ -165,7 +159,5 @@ function BasicTab(props: TBasicTabProps) {
         </div>
     );
 }
-
-// </Form>
 
 export default BasicTab;

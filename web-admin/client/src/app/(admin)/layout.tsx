@@ -2,7 +2,7 @@ import { getServerSession } from 'next-auth';
 import { redirect } from 'next/navigation';
 import AppSidebar from '@/components/common/app-sidebar';
 import LogoutWrapper from '@/components/common/logout-wrapper';
-import { SidebarProvider } from '@/components/ui/sidebar';
+import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
     DropdownMenu,
@@ -32,39 +32,45 @@ async function AdminLayout(props: AdminLayoutProps) {
             <div className={'w-full'}>
                 <header
                     className={
-                        'flex justify-end h-15 pr-6 py-3.5 gap-x-2 bg-CATASCAN-background-baseline border-b-2 sticky top-0'
+                        'flex justify-between h-15 pr-6 py-3.5 gap-x-2 bg-CATASCAN-background-baseline border-b-2 sticky top-0 z-[1]'
                     }>
-                    <Avatar
-                        className={
-                            'p-2 border border-CATASCAN-border-basic-split'
-                        }>
-                        <AvatarImage
-                            src={'/profile.png'}
-                            alt={session?.user?.name || 'profile image'}
-                        />
-                        <AvatarFallback />
-                    </Avatar>
-                    <DropdownMenu>
-                        <DropdownMenuTrigger className={'text-xs font-bold'}>
-                            <div className={'flex gap-x-2'}>
-                                <span
+                    <div className={'flex items-center pl-6'}>
+                        <SidebarTrigger />
+                    </div>
+                    <div className={'flex gap-x-2'}>
+                        <Avatar
+                            className={
+                                'p-2 border border-CATASCAN-border-basic-split'
+                            }>
+                            <AvatarImage
+                                src={'/profile.png'}
+                                alt={session?.user?.name || 'profile image'}
+                            />
+                            <AvatarFallback />
+                        </Avatar>
+                        <DropdownMenu>
+                            <DropdownMenuTrigger
+                                className={'text-xs font-bold'}>
+                                <div className={'flex gap-x-2'}>
+                                    <span
+                                        className={
+                                            'text-CATASCAN-text-basic-secondary'
+                                        }>
+                                        {session?.user?.name}
+                                    </span>
+                                    <TriangleDownIcon />
+                                </div>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent>
+                                <DropdownMenuItem
                                     className={
-                                        'text-CATASCAN-text-basic-secondary'
+                                        'flex justify-center font-medium hover:cursor-pointer'
                                     }>
-                                    {session?.user?.name}
-                                </span>
-                                <TriangleDownIcon />
-                            </div>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent>
-                            <DropdownMenuItem
-                                className={
-                                    'flex justify-center font-medium hover:cursor-pointer'
-                                }>
-                                <LogoutWrapper>Logout</LogoutWrapper>
-                            </DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
+                                    <LogoutWrapper>Logout</LogoutWrapper>
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    </div>
                 </header>
                 <main
                     className={

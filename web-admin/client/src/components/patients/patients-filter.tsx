@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { DateRange } from 'react-day-picker';
 import { MixerHorizontalIcon } from '@radix-ui/react-icons';
 import { PopoverClose } from '@radix-ui/react-popover';
+import { useSession } from 'next-auth/react';
+import useAdminInstitutions from '@/hooks/api/use-admin-institutions';
 import { Button } from '@/components/ui/button';
 import {
     Popover,
@@ -18,6 +20,8 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { DatePickerWithRange } from '@/components/ui/datepicker-with-range';
+import { MultiSelect } from '@/components/ui/multi-select';
+import dateUtil from '@/lib/utils/date';
 
 function PatientsFilter({
     filters,
@@ -26,6 +30,9 @@ function PatientsFilter({
     filters: ApiRequests.GetPatientList;
     onApply: (newFilters: ApiRequests.GetPatientList) => void;
 }) {
+    const role = useSession().data?.user?.role;
+    const { institutions } = useAdminInstitutions(role === 'admin');
+
     const [localFilters, setLocalFilters] =
         useState<ApiRequests.GetPatientList>({
             ...filters,
@@ -39,6 +46,13 @@ function PatientsFilter({
             ? new Date(localFilters.dateOfBirthTo)
             : undefined,
     });
+
+    const institutionOptions = institutions
+        ? institutions.map((inst) => ({
+              label: inst.institutionName,
+              value: inst.institutionName,
+          }))
+        : [];
 
     return (
         <Popover>
@@ -88,15 +102,37 @@ function PatientsFilter({
                                     setLocalFilters((prev) => ({
                                         ...prev,
                                         dateOfBirthFrom: newDate.from
-                                            ?.toISOString()
-                                            .split('T')[0],
+                                            ? dateUtil.formatToLocalYYYYMMDD(
+                                                  newDate.from
+                                              )
+                                            : undefined,
                                         dateOfBirthTo: newDate.to
-                                            ?.toISOString()
-                                            .split('T')[0],
+                                            ? dateUtil.formatToLocalYYYYMMDD(
+                                                  newDate.to
+                                              )
+                                            : undefined,
                                     }));
                                 }}
                             />
                         </div>
+
+                        {role === 'admin' && (
+                            <div className="flex flex-col gap-y-1.5">
+                                <span>Institutions</span>
+                                <MultiSelect
+                                    options={institutionOptions}
+                                    value={localFilters.institution || []}
+                                    onChange={(selectedInstitutionNames) => {
+                                        setLocalFilters((prev) => ({
+                                            ...prev,
+                                            institution:
+                                                selectedInstitutionNames,
+                                        }));
+                                    }}
+                                    placeholder="Select Institutions"
+                                />
+                            </div>
+                        )}
                     </div>
 
                     <div className="flex justify-end gap-x-2">
@@ -104,13 +140,15 @@ function PatientsFilter({
                             <Button variant="outline">Cancel</Button>
                         </PopoverClose>
 
-                        <Button
-                            variant="catascan"
-                            onClick={() => {
-                                onApply(localFilters);
-                            }}>
-                            Apply
-                        </Button>
+                        <PopoverClose asChild>
+                            <Button
+                                variant="catascan"
+                                onClick={() => {
+                                    onApply(localFilters);
+                                }}>
+                                Apply
+                            </Button>
+                        </PopoverClose>
                     </div>
                 </div>
             </PopoverContent>
