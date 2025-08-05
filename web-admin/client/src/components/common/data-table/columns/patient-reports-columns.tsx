@@ -3,11 +3,11 @@ import { ColumnDef } from '@tanstack/react-table';
 import { DataTableColumnHeader } from '@/components/common/data-table/data-table-column-header';
 import PatientReportRowActions from '@/components/common/data-table/data-table-row-actions/patient-report-row-actions';
 import { ReportDetail } from '@/lib/types/schema';
-import appUtil from '@/lib/utils/app';
 import renderUtil from '@/lib/utils/renderUtils';
+import dateUtil from '@/lib/utils/date';
 
-const confirmationRenderer = (data: ReportDetail['leftEyeDiagnosis']) => {
-    return `/confirm-group/${appUtil.getEyeStatus(data)}.png`;
+const confirmationRenderer = (data: string) => {
+    return `/confirm-group/${data}.png`;
 };
 
 const patientReportsColumns: ColumnDef<ReportDetail>[] = [
@@ -30,7 +30,7 @@ const patientReportsColumns: ColumnDef<ReportDetail>[] = [
         cell: ({ row }) => {
             return (
                 <span className="max-w-[202px]">
-                    {row.getValue('scanDate')}
+                    {dateUtil.formatUTCToLocalString(row.getValue('scanDate'))}
                 </span>
             );
         },
@@ -45,7 +45,7 @@ const patientReportsColumns: ColumnDef<ReportDetail>[] = [
         ),
         cell: ({ row }) => {
             return (
-                <div className="max-w-[160px]">
+                <div className="min-w-[140px]">
                     {renderUtil.renderAiResultBadge(
                         row.getValue('leftAiResult'),
                         'rounded-full'
@@ -67,7 +67,7 @@ const patientReportsColumns: ColumnDef<ReportDetail>[] = [
         ),
         cell: ({ row }) => {
             return (
-                <div className="max-w-[160px]">
+                <div className="min-w-[140px]">
                     {renderUtil.renderAiResultBadge(
                         row.getValue('rightAiResult'),
                         'rounded-full'

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { FileText, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -99,7 +99,6 @@ function ReportDetail() {
         {
             name: 'sex',
             label: 'Sex',
-            // TODO: get value from api
             value: report?.sex ?? '-',
         },
 
@@ -114,6 +113,12 @@ function ReportDetail() {
             value: report?.linkStatus ? 'Linked' : 'Unlinked',
         },
     ];
+
+    useEffect(() => {
+        if (comments) {
+            setLocalComments(comments);
+        }
+    }, [comments]);
 
     if (isLoading) {
         return <Loader2 className={'animate-spin'} />;
@@ -251,7 +256,7 @@ function ReportDetail() {
                                     reportId as string
                                 )}
                                 data={patients ?? []}
-                                searchProperty={'name'}
+                                searchProperty={'patientName'}
                                 searchInputPlaceholder={'Search Patient Name'}
                                 showPagination={false}
                                 showToolbarTotal={false}
@@ -297,6 +302,7 @@ function ReportDetail() {
                                         </div>
                                     </div>
                                 }
+                                emptyElement={<div className="h-[416px]"></div>}
                             />
                         </TabsContent>
                     </Tabs>

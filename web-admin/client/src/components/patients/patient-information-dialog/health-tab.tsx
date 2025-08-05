@@ -1,4 +1,4 @@
-import { Path, UseFormReturn } from 'react-hook-form';
+import { Path, useFormContext } from 'react-hook-form';
 import {
     FormControl,
     FormField,
@@ -71,12 +71,12 @@ const GENERAL_INFO = [
 type FormData = HealthInfo | PatientDetail;
 
 type THealthTabProps<T extends FormData> = {
-    form: UseFormReturn<T>;
     fieldNamePrefix?: T extends PatientDetail ? 'healthInfo' : never;
 };
 
 function HealthTab<T extends FormData>(props: THealthTabProps<T>) {
-    const { form, fieldNamePrefix } = props;
+    const { fieldNamePrefix } = props;
+    const form = useFormContext<T>();
 
     const getFieldName = <K extends keyof HealthInfo>(name: K): Path<T> => {
         if (fieldNamePrefix) {
@@ -108,9 +108,6 @@ function HealthTab<T extends FormData>(props: THealthTabProps<T>) {
                                             className="flex flex-row items-start space-x-3 space-y-0">
                                             <FormControl>
                                                 <Checkbox
-                                                    className={
-                                                        'data-[state=checked]:bg-CATASCAN-button data-[state=checked]:border-none'
-                                                    }
                                                     checked={Boolean(
                                                         field.value
                                                     )}

@@ -124,7 +124,7 @@ export const authOptions: NextAuthOptions = {
                 token: token?.value as string,
                 name: (token?.username ?? token?.sub) as string,
                 exp: token?.exp as number,
-                role: token?.role as string,
+                role: token?.role as "user" | "admin",
                 realExp: token?.realExp as number,
             };
             return session;

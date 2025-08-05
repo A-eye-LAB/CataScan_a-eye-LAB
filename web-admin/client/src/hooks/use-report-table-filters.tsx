@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { z } from 'zod';
-import { aiResultSchema, sexSchema } from '@/lib/types/schema';
+import { AiResult, sexSchema } from '@/lib/types/schema';
 
 export type FilterState = {
     sex: z.infer<typeof sexSchema> | 'all';
-    status: z.infer<typeof aiResultSchema> | 'all';
+    status: AiResult | 'all';
 };
 
 function useReportTableFilters() {

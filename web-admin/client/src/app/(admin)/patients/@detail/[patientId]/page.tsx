@@ -1,7 +1,7 @@
 'use client';
 
 import { startTransition } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useSearchParams } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 import PatientDetailTabsArea from '@/components/patients/patient-detail-tabs-area';
 import usePatient from '@/hooks/api/use-patient';
@@ -11,9 +11,14 @@ import dateUtil from '@/lib/utils/date';
 
 function PatientDetail() {
     const params = useParams();
+    const searchParams = useSearchParams();
     const { patientId } = params;
+    const institutionId = searchParams.get('institutionId');
 
-    const { patient, isLoading, error } = usePatient(patientId as string);
+    const { patient, isLoading, error } = usePatient(
+        patientId as string,
+        institutionId as string
+    );
 
     const BASIC_INFORMATATIONS = [
         {
@@ -42,7 +47,7 @@ function PatientDetail() {
         return <Loader2 className={'animate-spin'} />;
     }
 
-    if (!patientId || !patient || error) {
+    if (!patientId || error) {
         return (
             <ErrorUI
                 error={error}
@@ -57,7 +62,7 @@ function PatientDetail() {
 
     return (
         <div
-            className={'h-full border bg-background border-[#d9d9d9] p-6 pt-8'}>
+            className={'h-full border bg-background border-[#d9d9d9] p-6 mt-6'}>
             <div className={'flex flex-col gap-y-4'}>
                 <div className={'flex flex-col gap-y-6  px-5 py-6'}>
                     <div className={'flex'}>
@@ -65,7 +70,7 @@ function PatientDetail() {
                             className={
                                 'text-CATASCAN-text-basic-heading font-bold text-2xl'
                             }>
-                            {patient.name}
+                            {patient?.patientName}
                         </h1>
                     </div>
                     <div className={'grid grid-cols-4 gap-x-5'}>

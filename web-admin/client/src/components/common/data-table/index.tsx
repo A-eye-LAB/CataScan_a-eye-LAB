@@ -16,6 +16,7 @@ import {
     useReactTable,
     VisibilityState,
 } from '@tanstack/react-table';
+import { Table as TableType } from '@tanstack/react-table';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { DataTablePagination } from '@/components/common/data-table/data-table-pagination';
 import { DataTableToolbar } from '@/components/common/data-table/data-table-toolbar';
@@ -47,8 +48,9 @@ export interface DataTableProps<
     showToolbarTotal?: boolean;
     showPagination?: boolean;
     inputClassName?: string;
-    emptyText?: string;
-    renderExpandedRow?: (row: Row<TData>) => ReactElement; // ✅ 추가
+    emptyElement?: string | ReactElement;
+    renderExpandedRow?: (row: Row<TData>) => ReactElement;
+    renderSelectedRowActions?: (table: TableType<TData>) => ReactElement;
 }
 
 function DataTable<TData, TValue>({
@@ -62,8 +64,9 @@ function DataTable<TData, TValue>({
     showToolbarTotal,
     showPagination = true,
     inputClassName,
-    emptyText = 'No results',
+    emptyElement = 'No results',
     renderExpandedRow,
+    renderSelectedRowActions,
 }: DataTableProps<TData, TValue>) {
     const [rowSelection, setRowSelection] = useState({});
     const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(
@@ -98,16 +101,18 @@ function DataTable<TData, TValue>({
     });
 
     return (
-        <div className="space-y-4">
-            <DataTableToolbar
-                table={table}
-                searchProperty={searchProperty}
-                searchInputPlaceholder={searchInputPlaceholder}
-                filterComponent={FilterComponent}
-                showToolbarTotal={showToolbarTotal}
-                inputClassName={inputClassName}
-            />
-            <div className="rounded-md border">
+        <div>
+            <div className="mb-5">
+                <DataTableToolbar
+                    table={table}
+                    searchProperty={searchProperty}
+                    searchInputPlaceholder={searchInputPlaceholder}
+                    filterComponent={FilterComponent}
+                    showToolbarTotal={showToolbarTotal}
+                    inputClassName={inputClassName}
+                />
+            </div>
+            <div className="rounded-md border mb-6">
                 <Table>
                     <TableHeader>
                         {table.getHeaderGroups().map((headerGroup) => (
@@ -130,7 +135,7 @@ function DataTable<TData, TValue>({
                             </TableRow>
                         ))}
                     </TableHeader>
-                    <TableBody>
+                    <TableBody className={table.getRowModel().rows?.length ? '' : 'h-full'}>
                         {table.getRowModel().rows?.length ? (
                             table.getRowModel().rows.flatMap((row) => [
                                 <TableRow
@@ -184,15 +189,19 @@ function DataTable<TData, TValue>({
                             <TableRow>
                                 <TableCell
                                     colSpan={columns.length}
-                                    className="text-center text-muted-foreground">
-                                    {emptyText}
+                                    className="text-center text-muted-foreground"
+                                    >
+                                    {emptyElement}
                                 </TableCell>
                             </TableRow>
                         )}
                     </TableBody>
                 </Table>
             </div>
-            {showPagination && <DataTablePagination table={table} />}
+            <div className="relative">
+                {renderSelectedRowActions && renderSelectedRowActions(table)}
+                {showPagination && <DataTablePagination table={table} />}
+            </div>
         </div>
     );
 }

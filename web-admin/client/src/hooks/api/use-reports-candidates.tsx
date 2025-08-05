@@ -6,13 +6,11 @@ import fetcher from '@/lib/api/fetcher';
 function useReportsCandidates(reportId: string, filters: Partial<FilterState>) {
     const params = { ...filters };
 
-    // TODO: need check params type
     if (params.status === 'all') {
         delete params.status;
-    } else if (params.status === 'lowRisk') {
-        params.status = 'EyeStatus.normal';
-    } else if (params.status === 'requiresAttention') {
-        params.status = 'EyeStatus.abnormal';
+    }
+    if (params.sex === 'all') {
+        delete params.sex;
     }
 
     const requestUrl = apiUrl.getReportsReportIdCandidatesListUrl(reportId);
@@ -23,7 +21,7 @@ function useReportsCandidates(reportId: string, filters: Partial<FilterState>) {
         });
 
     return {
-        patients: data?.data,
+        patients: data,
         isLoading,
         error,
         mutate,

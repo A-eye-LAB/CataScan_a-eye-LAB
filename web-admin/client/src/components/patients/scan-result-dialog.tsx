@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, FormProvider } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { mutate as globalMutate } from 'swr';
 import ScanTabContents from '@/components/patients/reports-tab/scan-tab-contents';
 import useReportDetail from '@/hooks/api/use-report-detail';
 import {
@@ -15,7 +16,7 @@ import {
     AlertDialogCancel,
     AlertDialogAction,
 } from '@/components/ui/alert-dialog';
-import { Form, FormMessage } from '@/components/ui/form';
+import { FormMessage } from '@/components/ui/form';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { TDialogProps } from '@/lib/types/ui';
 import { ReportDetail, reportDetailSchema } from '@/lib/types/schema';
@@ -45,7 +46,20 @@ function ScanResultDialog(props: TScanResultDialogProps) {
             if (validateStatus(result.status)) {
                 await mutate();
                 toast('Success');
+                scanResultForm.reset();
                 setIsOpenDialog(false);
+
+                // Mutate for hook: useReportByPatient
+                await globalMutate((key) => {
+                    if (Array.isArray(key) && typeof key[0] === 'string') {
+                        return (
+                            key[0].includes('/reports/patient/') ||
+                            (key[0].includes('/patients/') &&
+                                key[0].includes('/reports'))
+                        );
+                    }
+                    return false;
+                });
             }
         } catch (error) {
             console.error(error);
@@ -68,7 +82,7 @@ function ScanResultDialog(props: TScanResultDialogProps) {
                 onClick={(event) => {
                     event.stopPropagation();
                 }}>
-                <Form {...scanResultForm}>
+                <FormProvider {...scanResultForm}>
                     <form>
                         <AlertDialogHeader className={'mb-6'}>
                             <AlertDialogTitle>
@@ -97,21 +111,15 @@ function ScanResultDialog(props: TScanResultDialogProps) {
                                 className={
                                     activeTab !== 'left' ? 'hidden' : ''
                                 }>
-                                <ScanTabContents
-                                    form={scanResultForm}
-                                    eye={'left'}
-                                />
+                                <ScanTabContents eye={'left'} />
                             </TabsContent>
                             <TabsContent
-                                value="left"
+                                value="right"
                                 forceMount
                                 className={
                                     activeTab !== 'right' ? 'hidden' : ''
                                 }>
-                                <ScanTabContents
-                                    form={scanResultForm}
-                                    eye={'right'}
-                                />
+                                <ScanTabContents eye={'right'} />
                             </TabsContent>
                         </Tabs>
                         <AlertDialogFooter className={'mt-5'}>
@@ -133,7 +141,7 @@ function ScanResultDialog(props: TScanResultDialogProps) {
                             <FormMessage />
                         </AlertDialogFooter>
                     </form>
-                </Form>
+                </FormProvider>
             </AlertDialogContent>
         </AlertDialog>
     );

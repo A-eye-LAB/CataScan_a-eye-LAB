@@ -26,10 +26,12 @@ function CommandContainer() {
             dateOfBirth: new Date(),
         },
     });
+
     const { isSubmitting, createPatient } = usePatientManagement({
         onCreateSuccess: () => {
             setIsOpen(false);
             patientForm.reset();
+
             startTransition(() => {
                 window.location.reload();
             });

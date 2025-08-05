@@ -24,7 +24,6 @@ function PatientReportRowActions(props: TPatientReportRowActionsProps) {
                 }}>
                 <Pencil2Icon />
             </Button>
-            {/*    TODO: set dialog  */}
             <ScanResultDialog
                 isOpenDialog={isOpen}
                 setIsOpenDialog={setIsOpen}

@@ -1,15 +1,47 @@
 import { ColumnDef } from '@tanstack/react-table';
 import { DataTableColumnHeader } from '@/components/common/data-table/data-table-column-header';
 import PatientProfilesRowActions from '@/components/common/data-table/data-table-row-actions/patient-profiles-row-actions';
+import { Checkbox } from '@/components/ui/checkbox';
 import { RegisteredPatient } from '@/lib/types/schema';
 
 const patientProfilesColumns: ColumnDef<RegisteredPatient>[] = [
     {
-        accessorKey: 'name',
+        id: 'select',
+        header: ({ table }) => (
+            <Checkbox
+                checked={
+                    table.getIsAllPageRowsSelected() ||
+                    (table.getIsSomePageRowsSelected() && 'indeterminate')
+                }
+                onCheckedChange={(value) =>
+                    table.toggleAllPageRowsSelected(!!value)
+                }
+                aria-label="Select all"
+                className="translate-y-[2px]"
+            />
+        ),
+        cell: ({ row }) => (
+            <div className={'flex items-center'}>
+                <Checkbox
+                    checked={row.getIsSelected()}
+                    onCheckedChange={(value) => row.toggleSelected(!!value)}
+                    aria-label="Select row"
+                    className="translate-y-[2px] "
+                    onClick={(event) => {
+                        event.stopPropagation();
+                    }}
+                />
+            </div>
+        ),
+        enableSorting: false,
+        enableHiding: false,
+    },
+    {
+        accessorKey: 'patientName',
         header: ({ column }) => (
             <DataTableColumnHeader column={column} title="Patient Name" />
         ),
-        cell: ({ row }) => <div>{row.getValue('name')}</div>,
+        cell: ({ row }) => <div>{row.getValue('patientName')}</div>,
         enableSorting: true,
         enableHiding: false,
     },
@@ -68,7 +100,11 @@ const patientProfilesColumns: ColumnDef<RegisteredPatient>[] = [
         id: 'actions',
         cell: ({ row }) => {
             return (
-                <PatientProfilesRowActions patientId={row.original.patientId} />
+                <PatientProfilesRowActions
+                    patientId={row.original.patientId}
+                    institutionId={row.original.institutionId}
+                    registrationDate={row.original.registrationDate}
+                />
             );
         },
     },

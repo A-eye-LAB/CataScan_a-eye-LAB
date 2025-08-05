@@ -18,7 +18,7 @@ export const usePatientManagement = (callbacks?: SuccessCallbacks) => {
         try {
             const patientData = data;
             const basicInfo = {
-                name: patientData.name,
+                patientName: patientData.patientName,
                 sex: patientData.sex,
                 phoneNum: patientData.phoneNum,
                 registrationDate: new Date(),

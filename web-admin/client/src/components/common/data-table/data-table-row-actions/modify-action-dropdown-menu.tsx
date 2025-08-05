@@ -13,19 +13,13 @@ import {
 interface IModifyActionDropdownMenuProps {
     setIsOpenEditDialog: React.Dispatch<React.SetStateAction<boolean>>;
     setIsOpenDeleteDialog: React.Dispatch<React.SetStateAction<boolean>>;
-    isEditRender?: boolean;
     onEdit?: () => void;
     onDelete?: () => void;
 }
 
 function ModifyActionDropdownMenu(props: IModifyActionDropdownMenuProps) {
-    const {
-        setIsOpenEditDialog,
-        setIsOpenDeleteDialog,
-        isEditRender = true,
-        onEdit,
-        onDelete,
-    } = props;
+    const { setIsOpenEditDialog, setIsOpenDeleteDialog, onEdit, onDelete } =
+        props;
 
     return (
         <>
@@ -42,17 +36,15 @@ function ModifyActionDropdownMenu(props: IModifyActionDropdownMenuProps) {
                     </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-[160px]">
-                    {isEditRender && (
-                        <DropdownMenuItem
-                            onClick={() => {
-                                setIsOpenEditDialog(true);
-                                if (onEdit) {
-                                    onEdit();
-                                }
-                            }}>
-                            Edit
-                        </DropdownMenuItem>
-                    )}
+                    <DropdownMenuItem
+                        onClick={() => {
+                            setIsOpenEditDialog(true);
+                            if (onEdit) {
+                                onEdit();
+                            }
+                        }}>
+                        Edit
+                    </DropdownMenuItem>
                     <DropdownMenuItem
                         onClick={() => {
                             setIsOpenDeleteDialog(true);

@@ -21,8 +21,38 @@ const apiUrl = {
     getAdminUserIdUrl: (userId: number) => {
         return `/admin/user/${userId}`;
     },
-    getAdminUserListUrl: () => {
-        return `/admin/user-list`;
+    getAdminUsersUrl: () => {
+        return `/admin/users`;
+    },
+    getAdminPatientsUrl: () => {
+        return `/admin/patients`;
+    },
+    getAdminInsitutionsUrl: () => {
+         return `/admin/institutions`
+    },
+    getAdminInstitutionInstitutionIdPatientsPatientIdUrl: (
+        institutionId: string,
+        patientId: string
+    ) => {
+        return `/admin/institution/${institutionId}/patients/${patientId}`;
+    },
+    getAdminInstitutionInstitutionIdPatientsPatientIdProfileUrl: (
+        institutionId: string,
+        patientId: string
+    ) => {
+        return `/admin/institution/${institutionId}/patients/${patientId}/profile`;
+    },
+    getAdminReportsUrl: () => {
+        return `/admin/reports`
+    },
+    getAdminReportsReportIdUrl: (reportId: string) => {
+        return `/admin/reports/${reportId}`;
+    },
+    getAdminInstitutionInstitutionIdPatientsPatientIdReportsUrl: (institutionId: string, patientId: number) => {
+        return `/admin/institution/${institutionId}/patients/${patientId}/reports`
+    },
+    getAdminInstitutionsData2Url: () => {
+        return `/admin/institutions/data2`;
     },
 
     /* Patients */

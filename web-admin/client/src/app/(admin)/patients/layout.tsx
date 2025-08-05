@@ -16,7 +16,10 @@ function PatientLayout(props: TPatientLayoutProps) {
     return (
         <PatientFilterProvider>
             <div>
-                <div className={'flex justify-between mb-6'}>
+                <div
+                    className={
+                        'flex justify-between mb-6 sticky top-[70px] z-10'
+                    }>
                     <h1 className={'text-3xl font-bold'}>Patient Profiles</h1>
                     <CommandContainer />
                 </div>

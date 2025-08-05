@@ -1,4 +1,4 @@
-import { UseFormReturn } from 'react-hook-form';
+import { UseFormReturn, FormProvider } from 'react-hook-form';
 import { Loader2 } from 'lucide-react';
 import BasicTab from '@/components/patients/patient-information-dialog/basic-tab';
 import HealthTab from '@/components/patients/patient-information-dialog/health-tab';
@@ -13,7 +13,6 @@ import {
     AlertDialogDescription,
 } from '@/components/ui/alert-dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Form } from '@/components/ui/form';
 import { Separator } from '@/components/ui/separator';
 import { PATIENT } from '@/lib/constants';
 import { PatientDetail } from '@/lib/types/schema';
@@ -39,7 +38,7 @@ function PatientInformationDialog(props: TBaseDialogProps) {
     return (
         <AlertDialog open={isOpenDialog} onOpenChange={setIsOpenDialog}>
             <AlertDialogContent>
-                <Form {...form}>
+                <FormProvider {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)}>
                         <AlertDialogHeader>
                             <AlertDialogTitle>
@@ -62,14 +61,11 @@ function PatientInformationDialog(props: TBaseDialogProps) {
                             </TabsList>
                             <Separator className={'my-3'} />
                             <TabsContent value="basic">
-                                <BasicTab form={form} mode={mode} />
+                                <BasicTab />
                             </TabsContent>
                             {mode === 'Add' && (
                                 <TabsContent value="health">
-                                    <HealthTab
-                                        form={form}
-                                        fieldNamePrefix="healthInfo"
-                                    />
+                                    <HealthTab fieldNamePrefix="healthInfo" />
                                 </TabsContent>
                             )}
                         </Tabs>
@@ -96,7 +92,7 @@ function PatientInformationDialog(props: TBaseDialogProps) {
                             </AlertDialogAction>
                         </AlertDialogFooter>
                     </form>
-                </Form>
+                </FormProvider>
             </AlertDialogContent>
         </AlertDialog>
     );

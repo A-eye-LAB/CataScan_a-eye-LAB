@@ -68,7 +68,7 @@ function ReportsFilter(props: TReportsFilterProps) {
                                 <SelectItem value="all">All</SelectItem>
                                 <SelectItem value="lowRisk">Normal</SelectItem>
                                 <SelectItem value="requiresAttention">
-                                    Abnormal
+                                    Requires Attention
                                 </SelectItem>
                             </SelectContent>
                         </Select>

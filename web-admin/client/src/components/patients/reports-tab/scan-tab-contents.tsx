@@ -1,5 +1,5 @@
 import Image from 'next/image';
-import { UseFormReturn } from 'react-hook-form';
+import { useFormContext } from 'react-hook-form';
 import { Separator } from '@/components/ui/separator';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Textarea } from '@/components/ui/textarea';
@@ -9,20 +9,20 @@ import {
     FormItem,
     FormLabel,
 } from '@/components/ui/form';
-import { ReportDetail } from '@/lib/types/schema';
-import appUtil from '@/lib/utils/app';
+import { AiResult, ReportDetail } from '@/lib/types/schema';
 import renderUtil from '@/lib/utils/renderUtils';
+import dateUtil from '@/lib/utils/date';
 
 const RADIO_ITEMS = [
     {
         value: 'certainlyNormal',
         label: 'Certainly Normal',
-        imageUrl: '/confirm-group/certainly-normal.png',
+        imageUrl: '/confirm-group/certainlyNormal.png',
     },
     {
         value: 'probablyNormal',
         label: 'Probably Normal',
-        imageUrl: '/confirm-group/probably-normal.png',
+        imageUrl: '/confirm-group/probablyNormal.png',
     },
     {
         value: 'uncertain',
@@ -32,22 +32,22 @@ const RADIO_ITEMS = [
     {
         value: 'probablyCataract',
         label: 'Probably Cataract',
-        imageUrl: '/confirm-group/probably-cataract.png',
+        imageUrl: '/confirm-group/probablyCataract.png',
     },
     {
         value: 'certainlyCataract',
         label: 'Certainly Cataract',
-        imageUrl: '/confirm-group/certainly-cataract.png',
+        imageUrl: '/confirm-group/certainlyCataract.png',
     },
 ];
 
 type TScanTabContentsProps = {
-    form: UseFormReturn<ReportDetail>;
     eye: 'left' | 'right';
 };
 
 function ScanTabContents(props: TScanTabContentsProps) {
-    const { form, eye } = props;
+    const { eye } = props;
+    const form = useFormContext<ReportDetail>();
 
     const eyeImagePath =
         eye === 'left'
@@ -65,18 +65,17 @@ function ScanTabContents(props: TScanTabContentsProps) {
         },
         {
             text: 'Scan Date',
-            content: `${form.getValues().scanDate}`,
+            content: `${dateUtil.formatUTCToLocalString(form.getValues().scanDate)}`,
         },
         {
             text: 'Result',
-            content: appUtil.getEyeStatus(form.getValues()[`${eye}AiResult`]),
+            content: form.getValues()[`${eye}AiResult`],
         },
     ];
 
     return (
         <div>
             <Separator className="bg-CATASCAN-border-basic-split my-3" />
-            {/*<div className={'flex flex-col'}>*/}
             <div className={'flex flex-col gap-y-2.5'}>
                 <span className={'text-lg font-medium'}>AI Result</span>
                 <div>
@@ -116,7 +115,7 @@ function ScanTabContents(props: TScanTabContentsProps) {
                                             }>
                                             {item.text === 'Result'
                                                 ? renderUtil.renderAiResultBadge(
-                                                      item?.content,
+                                                      item?.content as AiResult,
                                                       'rounded-full text-sm'
                                                   )
                                                 : item.content}
@@ -137,7 +136,6 @@ function ScanTabContents(props: TScanTabContentsProps) {
                             className={
                                 'p-4 bg-CATASCAN-background-baseline  rounded-lg'
                             }>
-                            {/*TODO: check user value*/}
                             <FormField
                                 control={form.control}
                                 name={`${eye}EyeDiagnosis`}
@@ -145,11 +143,7 @@ function ScanTabContents(props: TScanTabContentsProps) {
                                     return (
                                         <RadioGroup
                                             onValueChange={field.onChange}
-                                            defaultValue={
-                                                form.getValues()[
-                                                    `${eye}EyeDiagnosis`
-                                                ] ?? undefined
-                                            }>
+                                            value={field.value || undefined}>
                                             {RADIO_ITEMS.map((item) => {
                                                 return (
                                                     <div key={item.value}>

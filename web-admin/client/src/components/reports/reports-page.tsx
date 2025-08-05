@@ -1,28 +1,20 @@
 'use client';
 
-import { useState } from 'react';
-import { DateRange } from 'react-day-picker';
 import { useRouter } from 'next/navigation';
-import { addDays } from 'date-fns';
 import { Row } from '@tanstack/react-table';
 import ReportsFilter from '@/components/reports/reports-filter';
 import useReports from '@/hooks/api/use-reports';
 import useReportTableFilters from '@/hooks/use-report-table-filters';
+import { useDateContext } from '@/context/date-context';
 import { reportsColumns } from '@/components/common/data-table/columns';
 import ErrorUI from '@/components/common/error';
 import DataTable from '@/components/common/data-table';
-import { DatePickerWithRange } from '@/components/ui/datepicker-with-range';
 import dateUtil from '@/lib/utils/date';
 import { Report } from '@/lib/types/schema';
 
-const BEFORE_DAYS = 90;
-
 function ReportsPage() {
     const router = useRouter();
-    const [date, setDate] = useState<DateRange>({
-        from: addDays(new Date(), -BEFORE_DAYS),
-        to: new Date(),
-    });
+    const { date } = useDateContext();
 
     const {
         filters,
@@ -53,9 +45,6 @@ function ReportsPage() {
 
     return (
         <div>
-            <div className={'mb-6 w-[270px]'}>
-                <DatePickerWithRange date={date} setDate={setDate} />
-            </div>
             <div
                 className={
                     'bg-background h-full border border-#d9d9d9 p-6 pt-8'
@@ -69,7 +58,11 @@ function ReportsPage() {
                         searchProperty={'patientName'}
                         searchInputPlaceholder={'Search Patient Name'}
                         inputClassName={'flex-1'}
-                        emptyText={'No Report'}
+                        emptyElement={
+                            <div className="h-[664px] flex items-center justify-center">
+                                No Report
+                            </div>
+                        }
                         rowClassName={rowClassName}
                         onClickRow={(row) => {
                             router.push(`/reports/${row.original.reportId}`);

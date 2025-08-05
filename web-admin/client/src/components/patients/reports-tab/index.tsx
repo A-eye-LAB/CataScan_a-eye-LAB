@@ -1,15 +1,19 @@
 import Image from 'next/image';
+import { useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 import useReportByPatient from '@/hooks/api/use-report-by-patient';
 import DataTable from '@/components/common/data-table';
 import { patientReportsColumns } from '@/components/common/data-table/columns';
-import imageUtil from '@/lib/utils/image';
+import { Button } from '@/components/ui/button';
 
 type TReportsTabProps = { patientId: number };
 
 function ReportsTab(props: TReportsTabProps) {
     const { patientId } = props;
+    const searchParams = useSearchParams();
+    const institutionId = searchParams.get('institutionId');
 
-    const { reports } = useReportByPatient(patientId, {
+    const { reports } = useReportByPatient(patientId, institutionId as string, {
         sortDir: 'desc',
         sortBy: 'scanDate',
     });
@@ -18,6 +22,16 @@ function ReportsTab(props: TReportsTabProps) {
         <DataTable
             columns={patientReportsColumns}
             data={reports ?? []}
+            emptyElement={
+                <div className="h-[403px] flex flex-col items-center justify-center gap-y-5">
+                    <div>No Reports</div>
+                    <Link href={`/reports`}>
+                        <Button variant={'secondary'} className={'font-bold'}>
+                            Find Reports to Link
+                        </Button>
+                    </Link>
+                </div>
+            }
             showToolbarTotal={false}
             showPagination={false}
             renderExpandedRow={(row) => {
@@ -33,7 +47,10 @@ function ReportsTab(props: TReportsTabProps) {
                 ];
 
                 return (
-                    <div className={'py-7 bg-CATASCAN-background-baseline'}>
+                    <div
+                        className={
+                            'py-7 bg-CATASCAN-background-baseline rounded-md'
+                        }>
                         <div className={'flex justify-center gap-x-7'}>
                             {images.map((imageData) => {
                                 return (
@@ -51,9 +68,7 @@ function ReportsTab(props: TReportsTabProps) {
                                         <div className={'w-[185px] h-[185px]'}>
                                             {imageData.image ? (
                                                 <Image
-                                                    src={imageUtil.getInternalImageUrl(
-                                                        imageData.image
-                                                    )}
+                                                    src={imageData.image}
                                                     alt={'eye image'}
                                                     width={185}
                                                     height={185}

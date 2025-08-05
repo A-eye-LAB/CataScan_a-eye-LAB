@@ -2,6 +2,7 @@ import { ColumnDef } from '@tanstack/react-table';
 import { DataTableColumnHeader } from '@/components/common/data-table/data-table-column-header';
 import DataTableRowActions from '@/components/common/data-table/data-table-row-actions/user-account-row-actions';
 import { RegisteredUserAccount } from '@/lib/types/schema';
+import dateUtil from '@/lib/utils/date';
 
 const userAccountsColumns: ColumnDef<RegisteredUserAccount>[] = [
     {
@@ -45,7 +46,13 @@ const userAccountsColumns: ColumnDef<RegisteredUserAccount>[] = [
             <DataTableColumnHeader column={column} title="Created Date" />
         ),
         cell: ({ row }) => {
-            return <div>{row.getValue('createdDate')}</div>;
+            return (
+                <div>
+                    {dateUtil.formatUTCToLocalString(
+                        row.getValue('createdDate')
+                    )}
+                </div>
+            );
         },
         filterFn: (row, id, value) => {
             return value.includes(row.getValue(id));
@@ -61,7 +68,13 @@ const userAccountsColumns: ColumnDef<RegisteredUserAccount>[] = [
             <DataTableColumnHeader column={column} title="Updated Date" />
         ),
         cell: ({ row }) => {
-            return <div>{row.getValue('updatedDate')}</div>;
+            return (
+                <div>
+                    {dateUtil.formatUTCToLocalString(
+                        row.getValue('updatedDate')
+                    )}
+                </div>
+            );
         },
         filterFn: (row, id, value) => {
             return value.includes(row.getValue(id));

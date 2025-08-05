@@ -7,6 +7,10 @@ export const EyeLogoIcon = dynamic(
     () => import('@/components/ui/icon/EyeLogo')
 );
 
+export const TechForImpactLogo = dynamic(
+    () => import('@/components/ui/icon/TechForImpactLogo')
+);
+
 export type IconProps = {
     width?: number;
     height?: number;

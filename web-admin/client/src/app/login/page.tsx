@@ -11,7 +11,11 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
-import { EyeLogoIcon, TextLogoIcon } from '@/components/ui/icon';
+import {
+    EyeLogoIcon,
+    TechForImpactLogo,
+    TextLogoIcon,
+} from '@/components/ui/icon';
 import { authOptions } from '@/lib/utils/authOptions';
 
 async function LoginPage() {
@@ -29,7 +33,7 @@ async function LoginPage() {
                     className={
                         'flex items-center justify-center w-full h-full'
                     }>
-                    <div className="min-h-screen bg-[hsla(205,81%,70%,1)] relative w-full">
+                    <div className="bg-[hsla(205,81%,70%,1)] relative w-full h-full">
                         <div className="absolute inset-0">
                             <div className="absolute w-[100%] h-[100%] bg-[radial-gradient(at_80%_100%,hsla(212,61%,30%,1)_0px,transparent_50%)]"></div>
                             <div className="absolute w-[100%] h-[100%] bg-[radial-gradient(at_80%_0%,hsla(189,100%,56%,1)_0px,transparent_50%)]"></div>
@@ -55,7 +59,8 @@ async function LoginPage() {
             </div>
 
             <div className="w-full lg:w-1/2">
-                <div className="relative flex items-center justify-center h-full">
+                <div className="relative flex flex-col items-center justify-around h-full">
+                    <div className="h-[80px]"></div>
                     <Card className="w-full max-w-md border-0 shadow-none">
                         <CardHeader className="flex items-center justify-center gap-y-3">
                             <CardTitle className={'text-2xl font-semibold'}>
@@ -77,18 +82,42 @@ async function LoginPage() {
                                 className={
                                     'text-center whitespace-break-spaces w-full'
                                 }>
-                                {'By clicking continue, you agree to our '}
-                                {/* TODO: Add links */}
-                                <Link href={'/login'} className={'underline'}>
-                                    {'Terms of\nService'}
+                                <span>
+                                    {'By clicking continue, you agree to\nour '}
+                                </span>
+                                <Link
+                                    href={
+                                        'https://catascan.org/terms-of-service-partner'
+                                    }
+                                    className={'underline'}>
+                                    {'Terms of Use (Institution)'}
                                 </Link>
                                 {' and '}
-                                <Link href={'/login'} className={'underline'}>
+                                <Link
+                                    href={'https://catascan.org/privacy-policy'}
+                                    className={'underline'}>
                                     {'Privacy Policy.'}
                                 </Link>
                             </CardDescription>
                         </CardFooter>
                     </Card>
+                    <div className="pt-4 flex flex-col gap-y-5 items-center">
+                        <div>
+                            <TechForImpactLogo />
+                        </div>
+                        <div className="whitespace-break-spaces text-muted-foreground text-sm flex flex-col items-center">
+                            <span>
+                                {
+                                    'This service was developed with support from kakaoimpact Foundation'
+                                }
+                            </span>
+                            <span>
+                                {
+                                    'and contributions from the Tech for Impact community'
+                                }
+                            </span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
