@@ -139,9 +139,11 @@ logout
 sh 02-a.build_local_docker_image.sh
 ```
 ```
-# 해당 내용에서 설정변경 후 도커 실행 
-# dev프로파일은 로컬파일시스템에 이미지 저장; prod프로파일은 S3버킷에 이미지 저장)
+# 아래 쉘에서 설정변경 후 도커 실행(dev/prod프로파일, 둘 중 하나) 
+# prod프로파일은 S3버킷에 이미지 저장
 sh 03-a.docker_run.sh
+# dev프로파일은 로컬파일시스템에 이미지 저장
+sh 03-b.docker_run_dev.sh 
 ```
 
 
