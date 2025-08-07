@@ -80,33 +80,4 @@ public class AdminInstitutionController {
     }
 
 
-    @PostMapping(value = "/data2", produces = "application/zip")
-    public ResponseEntity<StreamingResponseBody> getInstitutionImageData2(
-            @RequestParam(required = false, name = "institutionId") List<Integer> institutionIds) {
-        log.info("ADMIN Received request to retrieve institution data");
-        List<Integer> institutionIdList = new ArrayList<>();
-        if (institutionIds != null) {
-            institutionIdList.addAll(institutionIds);
-        }
-
-        if (institutionIds == null || institutionIds.isEmpty()) {
-            List<InstitutionResponseDto> institutionList = (List<InstitutionResponseDto>) institutionService.getAllInstitutions(Pageable.unpaged());
-            institutionIdList.addAll(
-                    institutionList.stream().map(InstitutionResponseDto::getInstitutionId).toList());
-        }
-        try {
-            institutionIdList.clear();
-            StreamingResponseBody stream = outputStream -> {
-                dataDownloadService.downloadImageData(institutionIdList, outputStream);
-            };
-            return ResponseEntity.ok()
-                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=institution_image_data.zip")
-                    .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                    .body(stream);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-
 }

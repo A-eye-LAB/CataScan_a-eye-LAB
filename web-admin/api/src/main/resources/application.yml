@@ -20,7 +20,7 @@ spring:
 
   jpa:
     open-in-view: true
-    show-sql: true
+    show-sql: false
     hibernate:
       ddl-auto: update
     properties:
@@ -47,12 +47,12 @@ server:
 
 logging:
   level:
-    root: DEBUG
+    root: INFO
     org:
-      springframework: DEBUG
+      springframework: INFO
       hibernate:
-        SQL: DEBUG
-      cataract: DEBUG
+        SQL: INFO
+      cataract: INFO
 
 app:
   token:
