@@ -66,4 +66,4 @@ npm run dev
 
 ## 참고 링크
 
-- [Admin Figma](https://www.figma.com/design/c0vjaijleDJP3TRMa1rMmt/a-eye-lab_product?node-id=0-1)
+- [Admin Figma](https://www.figma.com/design/mVLX94YUYLITycrw2owRe6/-%EA%B3%B5%EC%9C%A0%EC%9A%A9--CataScan-Easy-Cataract-Detection-Screening?node-id=0-1&t=iFkpxF222BPlsCOl-1)
