@@ -1,6 +1,5 @@
 package org.cataract.web.application.service.impl;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cataract.web.application.service.DataDownloadService;
 import org.cataract.web.domain.Institution;
@@ -18,9 +17,8 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 
-import java.io.IOException;
+import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -46,12 +44,12 @@ public class DataDownloadServiceImpl implements DataDownloadService {
         this.patientRepository = patientRepository;
     }
 
-    @Value("${app.s3.bucket}")
+    @Value("${app.image.bucket.name}")
     private String s3Bucket;
 
-    @Override
-    public void downloadImageData(List<Integer> institutionIds, OutputStream outputStream) {
 
+    @Override
+    public byte[] downloadImageDataByteArr(List<Integer> institutionIds) {
         S3Client s3Client;
         Map<Institution, List<Patient>> groupedByInstitution = new HashMap<>();
         for (Integer institutionId : institutionIds) {
@@ -59,25 +57,26 @@ public class DataDownloadServiceImpl implements DataDownloadService {
                 groupedByInstitution.put(institution, patientRepository.findAllByInstitution(institution));
             });
         }
-        try (ZipOutputStream zipOutputStream = new ZipOutputStream(outputStream)) {
+        try (ByteArrayOutputStream zipBuffer = new ByteArrayOutputStream();
+             ZipOutputStream zipOutputStream = new ZipOutputStream(zipBuffer)) {
+
             for (Map.Entry<Institution, List<Patient>> entry : groupedByInstitution.entrySet()) {
                 String institutionName = entry.getKey().getName();
                 List<Patient> institutionPatients = entry.getValue();
-                s3Client =  S3Client.builder().region(Region.of(entry.getKey().getImageStorage().getBucketRegion())).build();
+                s3Client = S3Client.builder().region(Region.of(entry.getKey().getImageStorage().getBucketRegion())).build();
                 String folder = institutionName + "/";
                 String csvContent = buildCsv(entry.getValue());
-                // Add CSV entry
-                zipOutputStream.putNextEntry(new ZipEntry(folder + institutionName + "patients_reports.csv"));
+                zipOutputStream.putNextEntry(new ZipEntry(folder + institutionName + "_patients_reports.csv"));
                 zipOutputStream.write(csvContent.getBytes(StandardCharsets.UTF_8));
                 zipOutputStream.closeEntry();
 
                 Path rightImagePath = null;
                 Path leftImagePath = null;
-                // Add photos
+                String imagePath = "";
                 for (Patient patient : institutionPatients) {
                     for (Report report : patient.getReports()) {
                         if (report.getRImagePath() != null) {
-                            String s3Key = report.getRImagePath(); // S3 path from DB
+                            String s3Key = report.getRImagePath();
                             String filename = Paths.get(s3Key).getFileName().toString();
                             ResponseInputStream<GetObjectResponse> s3Object = s3Client.getObject(GetObjectRequest.builder()
                                     .bucket(s3Bucket)
@@ -85,14 +84,17 @@ public class DataDownloadServiceImpl implements DataDownloadService {
                                     .build());
 
                             zipOutputStream.putNextEntry(new ZipEntry(folder + filename));
-                            s3Object.transferTo(zipOutputStream);
-                            try (InputStream in = Files.newInputStream(rightImagePath)) {
-                                in.transferTo(zipOutputStream);
+                            byte[] buffer = new byte[8192];
+                            int bytesRead;
+                            while ((bytesRead = s3Object.read(buffer)) != -1) {
+                                zipOutputStream.write(buffer, 0, bytesRead);
                             }
+
                             zipOutputStream.closeEntry();
+                            s3Object.close();
                         }
                         if (report.getLImagePath() != null) {
-                            String s3Key = report.getLImagePath(); // S3 path from DB
+                            String s3Key = report.getLImagePath();
                             String filename = Paths.get(s3Key).getFileName().toString();
                             ResponseInputStream<GetObjectResponse> s3Object = s3Client.getObject(GetObjectRequest.builder()
                                     .bucket(s3Bucket)
@@ -100,26 +102,27 @@ public class DataDownloadServiceImpl implements DataDownloadService {
                                     .build());
 
                             zipOutputStream.putNextEntry(new ZipEntry(folder + filename));
-                            s3Object.transferTo(zipOutputStream);
-                            try (InputStream in = Files.newInputStream(leftImagePath)) {
-                                in.transferTo(zipOutputStream);
+                            byte[] buffer = new byte[8192];
+                            int bytesRead;
+                            while ((bytesRead = s3Object.read(buffer)) != -1) {
+                                zipOutputStream.write(buffer, 0, bytesRead);
                             }
+
                             zipOutputStream.closeEntry();
+                            s3Object.close();
                         }
                     }
                 }
             }
+
             zipOutputStream.finish();
-        } catch (IOException ex) {
-            throw new RuntimeException(ex);
+            return zipBuffer.toByteArray();
+
+        } catch (Exception e) {
+            log.error("error making the downloaded report", e);
+            e.printStackTrace();
         }
-
-    }
-
-
-    @Override
-    public byte[] downloadImageDataByteArr(List<Integer> institutionIds) {
-        return new byte[0];
+        return null;
     }
 
 

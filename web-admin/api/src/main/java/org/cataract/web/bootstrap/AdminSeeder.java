@@ -66,10 +66,6 @@ public class AdminSeeder implements ApplicationListener<ContextRefreshedEvent> {
 
         Optional<User> optionalUser = userRepository.findByUsernameAndRoleNot(userDto.getUsername(), Role.DELETED);
 
-        if (optionalUser.isPresent()) {
-            log.info("admin user {} already exists ", adminUser);
-            return;
-        }
         ImageStorage imageStorage = new ImageStorage(new ImageStorageCreateRequestDto(defaultBucketName, defaultBucketRegion));
         Optional<ImageStorage> optionalImageStorage = imageStorageRepository.findByBucketName(defaultBucketName);
         ImageStorage imageStorage1 = optionalImageStorage.orElse(imageStorageRepository.save(imageStorage));
@@ -77,12 +73,15 @@ public class AdminSeeder implements ApplicationListener<ContextRefreshedEvent> {
                 .orElse(new Institution(adminUserInstitution));
         adminInstitution.setImageStorage(imageStorage1);
         institutionRepository.save(adminInstitution);
-
-        var user = new User(userDto.getUsername(), passwordEncoder.encode(userDto.getPassword()),
-                Role.ADMIN, adminInstitution, userDto.getEmail());
-
-        userRepository.save(user);
-        log.info("admin user {} created ", adminUser);
+        if (optionalUser.isPresent()) {
+            log.info("admin user {} already exists ", adminUser);
+            return;
+        } else {
+            var user = new User(userDto.getUsername(), passwordEncoder.encode(userDto.getPassword()),
+                    Role.ADMIN, adminInstitution, userDto.getEmail());
+            userRepository.save(user);
+            log.info("admin user {} created ", adminUser);
+        }
     }
 
 }

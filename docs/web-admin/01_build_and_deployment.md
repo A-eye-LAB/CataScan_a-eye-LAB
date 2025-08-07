@@ -51,33 +51,37 @@ docker-compose up --build -d
 
 ### 주요 환경 변수
 
-| 키                                                   | 설명                            | 예시                    |
-| :----------------------------------------------------: | :-------------------------------: | :-----------------------: |
-| `SPRING_DATASOURCE_URL`, `SPRING_DATASOURCE_USERNAME`, `SPRING_DATASOURCE_PASSWORD`| DB엔드포인트, DB유저명, DB유저암호 | `jdbc:postgresql://localhost:5432/postgres?allowPublicKeyRetrieval=true&useSSL=false`, `postgres`, `dbpassword` |
-| `APP_TOKEN_SECRET`, `APP_TOKEN_EXPIRE_HOURS` | 어플리케이션 토큰 암호화키(32글자, 프론트엔드의 `PASETO_KEY`와 동일)와 토큰 유효시간  | `iZeujFSbD8gii21pfx8XFMH56V71inkP`, `12` |
-| `APP_ADMIN_USERNAME`, `APP_ADMIN_PASSWORD`, `APP_ADMIN_EMAIL`, `APP_ADMIN_INSTITUTION` | 관리자 유저명, 암호(8-32글자), 이메일, 기관명  | `admin`, `ot3Jr6zh58Ft0U4L`, `example@example.com`, `Eyelab` |
-| `APP_HOST_URL`, `APP_HOST_PORT` | 웹 어플리케이션 호스트 URL 및 포트(이미지 저장 및 접근 용도, 개발/테스트서버용)  | `http://localhost`, `8080` |
-| `APP_PATIENT_RETENTION_DAYS`, `APP_PATIENT_RETENTION_CRON` | 환자 데이터 저장 정책(삭제된 환자 자동 삭제 스케쥴러)  | `2000`, `"0 0 1 * * ?"` |
-| `APP_IMAGE_BUCKET_NAME`, `APP_IMAGE_BUCKET_REGION` | S3버킷명 및 리전(운영서버용)  | `catascan-api-bucket`, `ap-northeast-2` |
+| 키                                                   |                           설명                           |                                                       예시                                                        |
+| :----------------------------------------------------: |:------------------------------------------------------:|:---------------------------------------------------------------------------------------------------------------:|
+| `SPRING_DATASOURCE_URL`, `SPRING_DATASOURCE_USERNAME`, `SPRING_DATASOURCE_PASSWORD`|                 DB엔드포인트, DB유저명, DB유저암호                 | `jdbc:postgresql://localhost:5432/postgres?allowPublicKeyRetrieval=true&useSSL=false`, `postgres`, `dbpassword` |
+| `APP_TOKEN_SECRET`, `APP_TOKEN_EXPIRE_HOURS` | 어플리케이션 토큰 암호화키(32글자, 프론트엔드의 `PASETO_KEY`와 동일)와 토큰 유효시간 |                                    `iZeujFSbD8gii21pfx8XFMH56V71inkP`, `12`                                     |
+| `APP_ADMIN_USERNAME`, `APP_ADMIN_PASSWORD`, `APP_ADMIN_EMAIL`, `APP_ADMIN_INSTITUTION` |             관리자 유저명, 암호(8-32글자), 이메일, 기관명              |                         `LabSDAdmin`, `labSDUser2025!`, `example@example.com`, `Eyelab`                         |
+| `APP_HOST_URL`, `APP_HOST_PORT` |    웹 어플리케이션 호스트 URL 및 포트(이미지 저장 및 접근 용도, 개발/테스트서버용)    |                                           `http://localhost`, `8080`                                            |
+| `APP_PATIENT_RETENTION_DAYS`, `APP_PATIENT_RETENTION_CRON` |            환자 데이터 저장 정책(삭제된 환자 자동 삭제 스케쥴러)             |                                             `2000`, `"0 0 1 * * ?"`                                             |
+| `APP_IMAGE_BUCKET_NAME`, `APP_IMAGE_BUCKET_REGION` |                   S3버킷명 및 리전(운영서버용)                    |                                     `catascan-api-bucket`, `ap-northeast-2`                                     |
+| `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` |        IAM 등록으로 부여받은 액세스 키ID 및 암호 액세스 키(운영서버용)         |                         `AKIAGIEBARIGNOPVON`, `B3d4*1NA420WJ0JFSD0FJO%!f#!^#H0%o0N!R0bOH`                          |
 
 ### How to deploy
 - EC2인스턴스, S3버킷, RDS인스턴스, AWS 사용자의 액세스키를 생성하고, EC2인스턴스에 SSH로 접근한 부분에서 시작합니다.
 
 #### 기본 패키지 설치 및 ec2-user 권한 확인
 ```
-# 도커 설치 및 권한 설정
+# Docker 설치 및 권한 설정
 sh 01.install_docker.sh
 logout
 ```
 ```
 # ssh 로그아웃 이후 다시 로그인 후
-# 도커 이미지 빌드 후 로컬 레지스트리에 도커 이미지 업로드
+# Docker 이미지 빌드 후 로컬 레지스트리에 Docker 이미지 업로드
 sh 02.build_docker_image.sh
 ```
-
 ```
-# 쿠버네티스 k3s 설치 및 네임스페이스 catascan 구동
-sh 03.install_k3s.sh
+# Postgres 설치(DB 직접 접근할 수 있도록 설치)
+03.install_postgres.sh
+```
+```
+# Kubernetes k3s 설치 및 네임스페이스 catascan 구동
+sh 04.install_k3s.sh
 ```
 
 ```
@@ -122,6 +126,24 @@ rm docker-compose.yml Dockerfile
 mv docker-compose-light.yml docker-compose.yml
 docker-compose up -d
 ```
+
+
+### * 별도 모니터링 기능 없이 EC2 인스턴스 내에서 API 서버 구성
+```
+# 도커 설치 및 권한 설정
+sh 01.install_docker.sh
+logout
+```
+```
+# 프로메테우스나 그라파나 없는 도커 이미지 빌드
+sh 02-a.build_local_docker_image.sh
+```
+```
+# 해당 내용에서 설정변경 후 도커 실행 
+# dev프로파일은 로컬파일시스템에 이미지 저장; prod프로파일은 S3버킷에 이미지 저장)
+sh 03-a.docker_run.sh
+```
+
 
 [처음으로](../overview.md) |
 [소개로](00_introduction.md) |
