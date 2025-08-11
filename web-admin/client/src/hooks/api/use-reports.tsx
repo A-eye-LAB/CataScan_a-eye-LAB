@@ -40,14 +40,14 @@ function useReports(props: TUserReportsProps) {
     if (data) {
         reports = data.map((report) => {
             const aiResults = [report.leftAiResult, report.rightAiResult];
-            let aiResult: 'requiresAttention' | 'lowRisk' | 'unknown';
+            let aiResult: 'requiresAttention' | 'lowRisk' | 'ungradable';
 
             if (aiResults.includes('requiresAttention')) {
                 aiResult = 'requiresAttention';
             } else if (aiResults.includes('lowRisk')) {
                 aiResult = 'lowRisk';
             } else {
-                aiResult = 'unknown';
+                aiResult = 'ungradable';
             }
 
             return {
