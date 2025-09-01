@@ -15,18 +15,13 @@ from tqdm import tqdm
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--cfg", type=str, required=True, help="Configuration file to use"
-    )
-    parser.add_argument(
-        "--ckpt", type=str, required=True, help="Checkpoint file to load model weights"
-    )
+    parser.add_argument("--cfg", type=str, required=True, help="Configuration file to use")
+    parser.add_argument("--ckpt", type=str, required=True, help="Checkpoint file to load model weights")
     parser.add_argument(
         "--dataset_path",
         type=str,
-        default="dataset/kaggle_cataract_nand",
-        required=True,
-        help="Configuration file to use",
+        default="dataset/data/kaggle_cataract_nand",
+        help="test dataset path",
     )
 
     args = parser.parse_args()
@@ -81,13 +76,9 @@ class CustomImageDataset(Dataset):
 
 def load_model(model_name, num_classes, pretrained):
     if hasattr(models, model_name):
-        return getattr(models, model_name)(
-            num_classes=num_classes, pretrained=pretrained
-        )
+        return getattr(models, model_name)(num_classes=num_classes, pretrained=pretrained)
     else:
-        return getattr(torchvision_models, model_name)(
-            num_classes=num_classes, pretrained=pretrained
-        )
+        return getattr(torchvision_models, model_name)(num_classes=num_classes, pretrained=pretrained)
 
 
 def main(args):
