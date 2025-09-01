@@ -34,13 +34,13 @@ const apiUrl = {
         institutionId: string,
         patientId: string
     ) => {
-        return `/admin/institution/${institutionId}/patients/${patientId}`;
+        return `/admin/institutions/${institutionId}/patients/${patientId}`;
     },
     getAdminInstitutionInstitutionIdPatientsPatientIdProfileUrl: (
         institutionId: string,
         patientId: string
     ) => {
-        return `/admin/institution/${institutionId}/patients/${patientId}/profile`;
+        return `/admin/institutions/${institutionId}/patients/${patientId}/profile`;
     },
     getAdminReportsUrl: () => {
         return `/admin/reports`
@@ -49,7 +49,7 @@ const apiUrl = {
         return `/admin/reports/${reportId}`;
     },
     getAdminInstitutionInstitutionIdPatientsPatientIdReportsUrl: (institutionId: string, patientId: number) => {
-        return `/admin/institution/${institutionId}/patients/${patientId}/reports`
+        return `/admin/institutions/${institutionId}/patients/${patientId}/reports`
     },
     getAdminInstitutionsData2Url: () => {
         return `/admin/institutions/data2`;
